@@ -17,6 +17,10 @@ function ProtectedRoute({ children }) {
   const [session, setSession] = useState(undefined)
 
   useEffect(() => {
+    if (!supabase) {
+      setSession(null)
+      return
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
     })
