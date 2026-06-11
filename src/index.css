@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Colors */
+  --cream: #FAF7F2;
+  --beige: #F0E9DC;
+  --beige-dark: #E0D4C0;
+  --gold: #C9A87C;
+  --gold-light: #DDBF96;
+  --taupe: #9C8878;
+  --text: #2C2524;
+  --text-muted: #8C7B6B;
+  --border: #E5DDD0;
+  --white: #FFFFFF;
+  --success: #6B9E78;
+  --error: #C97070;
+
+  /* Typography */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-arabic: 'Cairo', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Spacing */
+  --max-width: 1200px;
+  --header-height: 60px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--cream);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* When Arabic is active, use Cairo for everything */
+[lang="ar"] body,
+[dir="rtl"] body {
+  font-family: var(--font-arabic);
+}
+
+/* Smooth RTL transitions */
+html {
+  transition: all 0.2s ease;
+}
+
+/* Mobile first — base styles are for mobile */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-height: 70px;
+  }
+  .container {
+    padding: 0 32px;
+  }
+}
