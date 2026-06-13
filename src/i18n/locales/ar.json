@@ -24,18 +24,34 @@
     "outOfStock": "نفد المخزون",
     "inStock": "متوفر",
     "viewProduct": "عرض المنتج",
-    "backToShop": "العودة إلى المتجر"
+    "backToShop": "العودة إلى المتجر",
+    "viewAll": "عرض الكل",
+    "from": "ابتداءً من"
   },
   "home": {
-    "hero": "أزياء محتشمة أنيقة",
-    "subtitle": "اكتشفي مجموعتنا من العبايات والجلبابات والروبات والطقم",
+    "heroTitle": "نوارا",
+    "heroSubtitle": "أزياء محتشمة أنيقة للمرأة العصرية",
     "shopNow": "تسوقي الآن",
-    "featuredProducts": "المنتجات المميزة",
-    "categories": "مجموعاتنا",
-    "abayas": "عبايات",
-    "jilbabs": "جلبابات",
-    "robes": "روبات",
-    "ensembles": "طقم"
+    "shopByCategory": "تسوقي حسب الفئة",
+    "newArrivals": "وصل حديثاً",
+    "viewAll": "عرض الكل",
+    "noProducts": "وصل حديثاً قريباً",
+    "fromPrice": "ابتداءً من {{price}} دج",
+    "categories": {
+      "abayas": "عبايات",
+      "jilbabs": "جلبابات",
+      "kimonos": "كيمونو",
+      "ensembles": "طقم",
+      "accessories": "إكسسوارات"
+    },
+    "trust": {
+      "cashOnDelivery": "الدفع عند الاستلام",
+      "cashOnDeliveryDesc": "ادفعي عند وصول طلبك",
+      "nationwideDelivery": "توصيل لجميع الولايات",
+      "nationwideDeliveryDesc": "جميع الولايات الـ 58 عبر Yalidine و ZR Express",
+      "qualityGuaranteed": "جودة مضمونة",
+      "qualityGuaranteedDesc": "أقمشة فاخرة وحرفة متقنة"
+    }
   },
   "shop": {
     "title": "مجموعتنا",

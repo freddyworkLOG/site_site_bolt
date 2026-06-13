@@ -24,18 +24,34 @@
     "outOfStock": "Out of Stock",
     "inStock": "In Stock",
     "viewProduct": "View Product",
-    "backToShop": "Back to Shop"
+    "backToShop": "Back to Shop",
+    "viewAll": "View All",
+    "from": "From"
   },
   "home": {
-    "hero": "Elegant Modest Fashion",
-    "subtitle": "Discover our curated collection of abayas, jilbabs, robes and ensembles",
+    "heroTitle": "Nouara",
+    "heroSubtitle": "Elegant Modest Fashion for the Modern Woman",
     "shopNow": "Shop Now",
-    "featuredProducts": "Featured Products",
-    "categories": "Our Collections",
-    "abayas": "Abayas",
-    "jilbabs": "Jilbabs",
-    "robes": "Robes",
-    "ensembles": "Ensembles"
+    "shopByCategory": "Shop by Category",
+    "newArrivals": "New Arrivals",
+    "viewAll": "View All",
+    "noProducts": "New arrivals coming soon",
+    "fromPrice": "From {{price}} DZD",
+    "categories": {
+      "abayas": "Abayas",
+      "jilbabs": "Jilbabs",
+      "kimonos": "Kimonos",
+      "ensembles": "Ensembles",
+      "accessories": "Accessories"
+    },
+    "trust": {
+      "cashOnDelivery": "Cash on Delivery",
+      "cashOnDeliveryDesc": "Pay when your order arrives",
+      "nationwideDelivery": "Delivery Nationwide",
+      "nationwideDeliveryDesc": "All 58 wilayas via Yalidine & ZR Express",
+      "qualityGuaranteed": "Quality Guaranteed",
+      "qualityGuaranteedDesc": "Premium fabrics and expert craftsmanship"
+    }
   },
   "shop": {
     "title": "Our Collection",
@@ -99,7 +115,7 @@
     "whatNext": "What happens next?",
     "step1": "We will confirm your order within 24 hours",
     "step2": "Your order will be shipped via your chosen delivery service",
-    "step3": "You will receive your order within 2–5 business days",
+    "step3": "You will receive your order within 2-5 business days",
     "continueShopping": "Continue Shopping"
   },
   "howToOrder": {
