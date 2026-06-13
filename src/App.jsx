@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { supabase } from './lib/supabase'
 import './i18n'
 
 import Home from './pages/Home'
@@ -12,24 +10,6 @@ import OrderConfirmation from './pages/OrderConfirmation'
 import HowToOrder from './pages/HowToOrder'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
-
-function ProtectedRoute({ children }) {
-  const [session, setSession] = useState(undefined)
-
-  useEffect(() => {
-    if (!supabase) {
-      setSession(null)
-      return
-    }
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
-  }, [])
-
-  if (session === undefined) return null // still loading
-  if (!session) return <Navigate to="/admin/login" replace />
-  return children
-}
 
 export default function App() {
   return (
@@ -43,14 +23,8 @@ export default function App() {
         <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
         <Route path="/how-to-order" element={<HowToOrder />} />
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route
-          path="/admin/*"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* TODO: Restore ProtectedRoute when auth is wired */}
+        <Route path="/admin/*" element={<AdminDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
