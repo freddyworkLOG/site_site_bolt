@@ -56,6 +56,7 @@
   "shop": {
     "title": "Notre Collection",
     "noProducts": "Aucun produit trouve.",
+    "clearFilters": "Effacer les filtres",
     "filters": "Filtres",
     "allCategories": "Toutes les categories",
     "allSizes": "Toutes les tailles",
@@ -63,7 +64,24 @@
     "sortBy": "Trier par",
     "newest": "Plus recent",
     "priceLowHigh": "Prix : croissant",
-    "priceHighLow": "Prix : decroissant"
+    "priceHighLow": "Prix : decroissant",
+    "apply": "Appliquer",
+    "clearAll": "Tout effacer",
+    "close": "Fermer",
+    "categories": {
+      "abayas": "Abayas",
+      "jilbabs": "Jilbabs",
+      "kimonos": "Kimonos",
+      "ensembles": "Ensembles",
+      "accessories": "Accessoires"
+    },
+    "sizes": {
+      "S": "S",
+      "M": "M",
+      "L": "L",
+      "XL": "XL",
+      "freeSize": "Taille Unique"
+    }
   },
   "product": {
     "selectSize": "Choisir une taille",

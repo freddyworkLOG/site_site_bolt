@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Truck, Banknote, BadgeCheck, ArrowLeft } from 'lucide-react'
 import Layout from '../components/Layout'
+import ProductCard, { ProductCardSkeleton } from '../components/ProductCard'
 import { supabase } from '../lib/supabase'
 
 // Category configuration - easy to swap out later
@@ -49,12 +50,13 @@ export default function Home() {
           const formatted = data.map(product => {
             const prices = product.product_variants?.map(v => v.price_dzd) || []
             const minPrice = prices.length > 0 ? Math.min(...prices) : null
-            const mainImage = product.images?.[0] || null
 
             return {
               id: product.id,
-              name: product[`name_${i18n.language}`] || product.name_en,
-              image: mainImage,
+              name_en: product.name_en,
+              name_fr: product.name_fr,
+              name_ar: product.name_ar,
+              images: product.images,
               minPrice,
             }
           })
@@ -68,11 +70,7 @@ export default function Home() {
     }
 
     fetchProducts()
-  }, [i18n.language])
-
-  const getProductName = (product) => {
-    return product[`name_${i18n.language}`] || product.name_en
-  }
+  }, [])
 
   return (
     <Layout>
@@ -305,41 +303,9 @@ export default function Home() {
 
           {loading ? (
             // Skeleton loading
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '16px',
-              }}
-            >
+            <div className="products-grid">
               {[...Array(4)].map((_, i) => (
-                <div key={i} style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>
-                  <div
-                    style={{
-                      aspectRatio: '3/4',
-                      backgroundColor: 'var(--border)',
-                      borderRadius: '12px',
-                      marginBottom: '12px',
-                    }}
-                  />
-                  <div
-                    style={{
-                      height: '18px',
-                      width: '70%',
-                      backgroundColor: 'var(--border)',
-                      borderRadius: '4px',
-                      marginBottom: '8px',
-                    }}
-                  />
-                  <div
-                    style={{
-                      height: '14px',
-                      width: '40%',
-                      backgroundColor: 'var(--border)',
-                      borderRadius: '4px',
-                    }}
-                  />
-                </div>
+                <ProductCardSkeleton key={i} />
               ))}
             </div>
           ) : products.length === 0 ? (
@@ -351,90 +317,9 @@ export default function Home() {
             </div>
           ) : (
             // Products grid
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '16px',
-              }}
-              className="products-grid"
-            >
+            <div className="products-grid">
               {products.map((product) => (
-                <Link
-                  key={product.id}
-                  to={`/product/${product.id}`}
-                  style={{ textDecoration: 'none' }}
-                >
-                  <div
-                    style={{
-                      backgroundColor: 'var(--white)',
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        aspectRatio: '3/4',
-                        backgroundColor: 'var(--beige)',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {product.image ? (
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'var(--text-muted)',
-                            fontSize: '14px',
-                          }}
-                        >
-                          {t('common.viewProduct')}
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ padding: '12px' }}>
-                      <h3
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          color: 'var(--text)',
-                          marginBottom: '6px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {product.name}
-                      </h3>
-                      {product.minPrice && (
-                        <p
-                          style={{
-                            fontSize: '13px',
-                            color: 'var(--gold)',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {t('home.fromPrice', { price: product.minPrice.toLocaleString() })}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </Link>
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
@@ -443,6 +328,11 @@ export default function Home() {
 
       {/* Desktop products grid styles */}
       <style>{`
+        .products-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+        }
         @media (min-width: 768px) {
           .products-grid {
             grid-template-columns: repeat(4, 1fr) !important;
@@ -458,26 +348,11 @@ export default function Home() {
       {/* TRUST / USP STRIP */}
       <section style={{ padding: '48px 0', backgroundColor: 'var(--white)' }}>
         <div className="container">
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '32px',
-            }}
-            className="trust-strip"
-          >
+          <div className="trust-strip">
             {/* Cash on Delivery */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '16px',
-                textAlign: isRTL ? 'right' : 'left',
-              }}
-            >
+            <div className="trust-item">
               <div
                 style={{
-                  flexShrink: 0,
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
@@ -491,34 +366,19 @@ export default function Home() {
                 <Banknote size={24} />
               </div>
               <div>
-                <h3
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: 'var(--text)',
-                    marginBottom: '4px',
-                  }}
-                >
+                <h3 className="trust-title">
                   {t('home.trust.cashOnDelivery')}
                 </h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                <p className="trust-desc">
                   {t('home.trust.cashOnDeliveryDesc')}
                 </p>
               </div>
             </div>
 
             {/* Delivery Nationwide */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '16px',
-                textAlign: isRTL ? 'right' : 'left',
-              }}
-            >
+            <div className="trust-item">
               <div
                 style={{
-                  flexShrink: 0,
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
@@ -532,34 +392,19 @@ export default function Home() {
                 <Truck size={24} />
               </div>
               <div>
-                <h3
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: 'var(--text)',
-                    marginBottom: '4px',
-                  }}
-                >
+                <h3 className="trust-title">
                   {t('home.trust.nationwideDelivery')}
                 </h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                <p className="trust-desc">
                   {t('home.trust.nationwideDeliveryDesc')}
                 </p>
               </div>
             </div>
 
             {/* Quality Guaranteed */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '16px',
-                textAlign: isRTL ? 'right' : 'left',
-              }}
-            >
+            <div className="trust-item">
               <div
                 style={{
-                  flexShrink: 0,
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
@@ -573,17 +418,10 @@ export default function Home() {
                 <BadgeCheck size={24} />
               </div>
               <div>
-                <h3
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: 'var(--text)',
-                    marginBottom: '4px',
-                  }}
-                >
+                <h3 className="trust-title">
                   {t('home.trust.qualityGuaranteed')}
                 </h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                <p className="trust-desc">
                   {t('home.trust.qualityGuaranteedDesc')}
                 </p>
               </div>
@@ -592,23 +430,47 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Desktop trust strip styles */}
+      {/* Trust strip styles */}
       <style>{`
+        .trust-strip {
+          display: flex;
+          flex-direction: column;
+          gap: 32px;
+        }
+        .trust-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+        }
+        .trust-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--text);
+          margin-bottom: 4px;
+        }
+        .trust-desc {
+          font-size: 14px;
+          color: var(--text-muted);
+          line-height: 1.5;
+        }
+        [dir="rtl"] .trust-item {
+          text-align: right;
+        }
         @media (min-width: 768px) {
           .trust-strip {
             flex-direction: row !important;
             justify-content: space-between;
             gap: 24px !important;
           }
-          .trust-strip > div {
+          .trust-item {
             flex: 1;
             max-width: 280px;
             text-align: center !important;
             flex-direction: column;
             align-items: center !important;
           }
-          .trust-strip > div > div:first-child {
-            margin-bottom: 12px;
+          [dir="rtl"] .trust-item {
+            text-align: center !important;
           }
         }
       `}</style>

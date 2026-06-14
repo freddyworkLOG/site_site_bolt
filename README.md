@@ -63,7 +63,8 @@ src/
 ├── components/
 │   ├── Header.jsx           # Nav, language switcher, cart icon
 │   ├── Footer.jsx           # Links, social, contact
-│   └── Layout.jsx           # Wrapper with Header + Footer
+│   ├── Layout.jsx           # Wrapper with Header + Footer
+│   └── ProductCard.jsx     # Reusable product card + skeleton
 ├── i18n/
 │   ├── index.js              # i18n config
 │   └── locales/
@@ -102,11 +103,20 @@ supabase/
   - [x] Shop by Category (5 categories: Abayas, Jilbabs, Kimonos, Ensembles, Accessories)
   - [x] New Arrivals (fetches from Supabase, shows lowest variant price)
   - [x] Trust/USP strip (COD, Nationwide Delivery, Quality)
+- [x] Shop page:
+  - [x] Product grid with shared ProductCard component
+  - [x] Category filter (radio, from URL param)
+  - [x] Size filter (multi-select chips)
+  - [x] Color filter (multi-select chips, localized)
+  - [x] Sort (newest, price low-high, price high-low)
+  - [x] Mobile filter drawer (bottom sheet)
+  - [x] Desktop sidebar filter panel
+- [x] Shared ProductCard component (used by Home and Shop)
 - [x] Database schema with sample products (6 products, 15 variants)
+- [x] Category column added (backfilled for sample products)
 - [x] Admin dashboard shell (auth temporarily removed for development)
 
 ### In Progress / Needs Work
-- [ ] Shop page: Filters (category, size, color), sorting (price, newest)
 - [ ] Product page: Variant selection (size/color), quantity, add to cart
 - [ ] Cart: Full functionality
 - [ ] Checkout: Order submission to database
@@ -188,4 +198,4 @@ npm run lint     # Run ESLint
 
 ---
 
-*Last updated: 2026-06-14*
+*Last updated: 2026-06-14 (Section 3: Shop page complete)*
