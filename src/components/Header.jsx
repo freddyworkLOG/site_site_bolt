@@ -23,7 +23,10 @@ export default function Header() {
         const cartItems = localStorage.getItem('cart_items')
         if (cartItems) {
           const items = JSON.parse(cartItems)
-          setCartCount(Array.isArray(items) ? items.length : 0)
+          const total = Array.isArray(items)
+            ? items.reduce((sum, item) => sum + (item.quantity || 1), 0)
+            : 0
+          setCartCount(total)
         } else {
           setCartCount(0)
         }
@@ -33,8 +36,15 @@ export default function Header() {
     }
 
     updateCartCount()
+
+    const handleCartUpdate = () => updateCartCount()
     window.addEventListener('storage', updateCartCount)
-    return () => window.removeEventListener('storage', updateCartCount)
+    window.addEventListener('cartUpdated', handleCartUpdate)
+
+    return () => {
+      window.removeEventListener('storage', updateCartCount)
+      window.removeEventListener('cartUpdated', handleCartUpdate)
+    }
   }, [location])
 
   const languages = [
