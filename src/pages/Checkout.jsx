@@ -115,6 +115,7 @@ const [loading, setLoading] = useState(true)
     e.preventDefault()
 
     if (!validateForm()) return
+    if (formData.website) return // bot filled the hidden field — quietly stop
     if (!supabase) {
       setErrors({ submit: 'Database not configured' })
       return
@@ -213,6 +214,16 @@ const [loading, setLoading] = useState(true)
         </h1>
 
         <form onSubmit={handleSubmit} className="checkout-form">
+          <input
+            type="text"
+            name="website"
+            value={formData.website}
+            onChange={(e) => handleChange('website', e.target.value)}
+            autoComplete="off"
+            tabIndex="-1"
+            style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }}
+            aria-hidden="true"
+          />
           {/* Main content */}
           <div className="checkout-main">
             {/* Personal info */}
