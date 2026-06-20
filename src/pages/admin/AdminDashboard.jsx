@@ -181,7 +181,6 @@ export default function AdminDashboard() {
 
   const handleProductSubmit = async (e) => {
     e.preventDefault()
-    const saving = true
 
     try {
       const productData = {
@@ -197,15 +196,18 @@ export default function AdminDashboard() {
       }
 
       if (editingProduct) {
-        await supabase.from('products').update(productData).eq('id', editingProduct.id)
+        const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id)
+        if (error) throw error
       } else {
-        const { data: newProduct } = await supabase.from('products').insert(productData).select('id').single()
+        const { data: newProduct, error } = await supabase.from('products').insert(productData).select('id').single()
+        if (error) throw error
         if (newProduct) {
           for (const variant of productForm.variants) {
-            await supabase.from('product_variants').insert({
+            const { error: variantError } = await supabase.from('product_variants').insert({
               product_id: newProduct.id,
               ...variant
             })
+            if (variantError) throw variantError
           }
         }
       }
@@ -214,6 +216,7 @@ export default function AdminDashboard() {
       closeProductModal()
     } catch (err) {
       console.error('Error saving product:', err)
+      alert('Failed to save product: ' + (err.message || 'unknown error'))
     }
   }
 
