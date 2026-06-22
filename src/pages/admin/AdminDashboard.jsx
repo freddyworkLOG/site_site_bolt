@@ -170,16 +170,42 @@ export default function AdminDashboard() {
       category: 'abayas',
       images: [],
       is_active: true,
-      variants: [{ size: 'S (36)', color_en: '', color_fr: '', color_ar: '', price_dzd: 0, stock_quantity: 0 }]
+      colorGroups: []
+    }
+  }
+
+  function getEmptyColorGroup() {
+    return {
+      hex: '',
+      color_en: '',
+      color_fr: '',
+      color_ar: '',
+      sizes: SIZES.map(s => ({ size: s, enabled: false, price_dzd: '', stock_quantity: '' }))
     }
   }
 
   const openProductModal = (product = null) => {
     if (product) {
-      setProductForm({
-        ...product,
-        variants: product.product_variants?.length ? product.product_variants : [getEmptyProduct().variants[0]]
-      })
+      const groupMap = {}
+      for (const v of (product.product_variants || [])) {
+        if (!groupMap[v.color_en]) {
+          const palette = COLOR_PALETTE.find(c => c.color_en === v.color_en)
+          groupMap[v.color_en] = {
+            hex: palette?.hex || '#cccccc',
+            color_en: v.color_en,
+            color_fr: v.color_fr,
+            color_ar: v.color_ar,
+            sizes: SIZES.map(s => ({ size: s, enabled: false, price_dzd: '', stock_quantity: '' }))
+          }
+        }
+        const sizeIdx = groupMap[v.color_en].sizes.findIndex(s => s.size === v.size)
+        if (sizeIdx >= 0) {
+          groupMap[v.color_en].sizes[sizeIdx].enabled = true
+          groupMap[v.color_en].sizes[sizeIdx].price_dzd = v.price_dzd?.toString() || ''
+          groupMap[v.color_en].sizes[sizeIdx].stock_quantity = v.stock_quantity?.toString() || ''
+        }
+      }
+      setProductForm({ ...product, colorGroups: Object.values(groupMap) })
       setEditingProduct(product)
     } else {
       setProductForm(getEmptyProduct())
@@ -194,34 +220,59 @@ export default function AdminDashboard() {
     setProductForm(getEmptyProduct())
   }
 
+  const addColorGroup = () => setProductForm(prev => ({ ...prev, colorGroups: [...prev.colorGroups, getEmptyColorGroup()] }))
+  const removeColorGroup = (gi) => setProductForm(prev => ({ ...prev, colorGroups: prev.colorGroups.filter((_, i) => i !== gi) }))
+  const updateColorGroup = (gi, updates) => setProductForm(prev => {
+    const groups = [...prev.colorGroups]
+    groups[gi] = { ...groups[gi], ...updates }
+    return { ...prev, colorGroups: groups }
+  })
+  const toggleSize = (gi, si) => setProductForm(prev => {
+    const groups = prev.colorGroups.map((g, i) => i !== gi ? g : {
+      ...g, sizes: g.sizes.map((s, j) => j !== si ? s : { ...s, enabled: !s.enabled })
+    })
+    return { ...prev, colorGroups: groups }
+  })
+  const updateSize = (gi, si, field, value) => setProductForm(prev => {
+    const groups = prev.colorGroups.map((g, i) => i !== gi ? g : {
+      ...g, sizes: g.sizes.map((s, j) => j !== si ? s : { ...s, [field]: value })
+    })
+    return { ...prev, colorGroups: groups }
+  })
+
   const handleProductSubmit = async (e) => {
     e.preventDefault()
-    const saving = true
-
     try {
       const productData = {
-        name_en: productForm.name_en,
-        name_fr: productForm.name_fr,
-        name_ar: productForm.name_ar,
-        description_en: productForm.description_en,
-        description_fr: productForm.description_fr,
-        description_ar: productForm.description_ar,
-        category: productForm.category,
-        images: productForm.images,
-        is_active: productForm.is_active,
+        name_en: productForm.name_en, name_fr: productForm.name_fr, name_ar: productForm.name_ar,
+        description_en: productForm.description_en, description_fr: productForm.description_fr, description_ar: productForm.description_ar,
+        category: productForm.category, images: productForm.images, is_active: productForm.is_active,
       }
 
+      const variantsFlat = productForm.colorGroups.flatMap(group =>
+        group.sizes.filter(s => s.enabled && group.color_en).map(s => ({
+          color_en: group.color_en, color_fr: group.color_fr, color_ar: group.color_ar,
+          size: s.size,
+          price_dzd: parseInt(s.price_dzd) || 0,
+          stock_quantity: parseInt(s.stock_quantity) || 0,
+          is_active: true
+        }))
+      )
+
       if (editingProduct) {
-        await supabase.from('products').update(productData).eq('id', editingProduct.id)
+        const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id)
+        if (error) throw error
+        await supabase.from('product_variants').delete().eq('product_id', editingProduct.id)
+        for (const v of variantsFlat) {
+          const { error: ve } = await supabase.from('product_variants').insert({ product_id: editingProduct.id, ...v })
+          if (ve) throw ve
+        }
       } else {
-        const { data: newProduct } = await supabase.from('products').insert(productData).select('id').single()
-        if (newProduct) {
-          for (const variant of productForm.variants) {
-            await supabase.from('product_variants').insert({
-              product_id: newProduct.id,
-              ...variant
-            })
-          }
+        const { data: newProduct, error } = await supabase.from('products').insert(productData).select('id').single()
+        if (error) throw error
+        for (const v of variantsFlat) {
+          const { error: ve } = await supabase.from('product_variants').insert({ product_id: newProduct.id, ...v })
+          if (ve) throw ve
         }
       }
 
@@ -229,6 +280,7 @@ export default function AdminDashboard() {
       closeProductModal()
     } catch (err) {
       console.error('Error saving product:', err)
+      alert('Failed to save product: ' + err.message)
     }
   }
 
@@ -284,7 +336,7 @@ export default function AdminDashboard() {
               color: 'var(--text)',
             }}
           >
-            Nouara Admin
+            Be Princess Collection — Admin
           </h1>
           <button
             onClick={handleSignOut}
@@ -555,72 +607,75 @@ export default function AdminDashboard() {
               </div>
 
               <div className="variants-section">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h4>{t('admin.variants')}</h4>
-                  <button type="button" onClick={() => setProductForm({ ...productForm, variants: [...productForm.variants, getEmptyProduct().variants[0]] })} className="icon-btn"><Plus size={18} /></button>
-                </div>
-                {productForm.variants.map((v, i) => (
-                  <div key={i} className="variant-card">
-                    <div className="variant-field">
-                      <label>Size</label>
-                      <div className="size-buttons">
-                        {SIZES.map(s => (
-                          <button
-                            key={s}
-                            type="button"
-                            className={`size-btn ${v.size === s ? 'active' : ''}`}
-                            onClick={() => {
-                              const newVariants = [...productForm.variants]
-                              newVariants[i].size = s
-                              setProductForm({ ...productForm, variants: newVariants })
-                            }}
+                <h4 style={{ marginBottom: '12px', fontWeight: 600 }}>Couleurs et tailles disponibles</h4>
+
+                {productForm.colorGroups.map((group, gi) => (
+                  <div key={gi} className="color-group-card" style={{ border: '1px solid var(--border)', borderRadius: '10px', padding: '16px', marginBottom: '12px', background: 'var(--beige)' }}>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {group.hex && <div style={{ width: 22, height: 22, borderRadius: '50%', background: group.hex, border: '1px solid #ccc', flexShrink: 0 }} />}
+                        <span style={{ fontWeight: 500, fontSize: '14px' }}>{group.color_fr || 'Sélectionner une couleur'}</span>
+                      </div>
+                      <button type="button" onClick={() => removeColorGroup(gi)} className="icon-btn danger"><X size={16} /></button>
+                    </div>
+
+                    <div className="color-swatches" style={{ marginBottom: '14px' }}>
+                      {COLOR_PALETTE.map(c => (
+                        <button key={c.hex} type="button"
+                          className={`color-swatch ${group.color_en === c.color_en ? 'active' : ''}`}
+                          style={{ backgroundColor: c.hex, border: c.hex === '#ffffff' || c.hex === '#F5EFE0' ? '1px solid #ddd' : 'none' }}
+                          title={`${c.color_fr}`}
+                          onClick={() => updateColorGroup(gi, { hex: c.hex, color_en: c.color_en, color_fr: c.color_fr, color_ar: c.color_ar })}
+                        />
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {group.sizes.map((s, si) => (
+                        <div key={s.size}>
+                          <button type="button"
+                            className={`size-btn ${s.enabled ? 'active' : ''}`}
+                            style={{ width: '100%', textAlign: 'left', marginBottom: s.enabled ? '6px' : '0' }}
+                            onClick={() => toggleSize(gi, si)}
                           >
-                            {s}
+                            {s.size}
                           </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="variant-field">
-                      <label>Color</label>
-                      <div className="color-swatches">
-                        {COLOR_PALETTE.map(c => (
-                          <button
-                            key={c.hex}
-                            type="button"
-                            className={`color-swatch ${v.color_en === c.color_en ? 'active' : ''}`}
-                            style={{ backgroundColor: c.hex, border: c.hex === '#ffffff' || c.hex === '#F5EFE0' ? '1px solid #ddd' : 'none' }}
-                            title={`${c.color_en} / ${c.color_fr}`}
-                            onClick={() => {
-                              const newVariants = [...productForm.variants]
-                              newVariants[i].color_en = c.color_en
-                              newVariants[i].color_fr = c.color_fr
-                              newVariants[i].color_ar = c.color_ar
-                              setProductForm({ ...productForm, variants: newVariants })
-                            }}
-                          />
-                        ))}
-                      </div>
-                      {v.color_en && (
-                        <span className="selected-color-name">
-                          {v.color_en} / {v.color_fr}
-                        </span>
-                      )}
-                    </div>
-                    <div className="variant-row-inline">
-                      <div className="variant-field">
-                        <label>Price (DZD)</label>
-                        <input type="number" placeholder="Price" value={v.price_dzd || ''} onChange={e => { const newVariants = [...productForm.variants]; newVariants[i].price_dzd = parseInt(e.target.value) || 0; setProductForm({ ...productForm, variants: newVariants }); }} />
-                      </div>
-                      <div className="variant-field">
-                        <label>Stock</label>
-                        <input type="number" placeholder="Stock" value={v.stock_quantity || ''} onChange={e => { const newVariants = [...productForm.variants]; newVariants[i].stock_quantity = parseInt(e.target.value) || 0; setProductForm({ ...productForm, variants: newVariants }); }} />
-                      </div>
-                      {productForm.variants.length > 1 && (
-                        <button type="button" onClick={() => setProductForm({ ...productForm, variants: productForm.variants.filter((_, idx) => idx !== i) })} className="icon-btn danger"><X size={16} /></button>
-                      )}
+                          {s.enabled && (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingLeft: '8px' }}>
+                              <div>
+                                <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Prix (DZD)</label>
+                                <input
+                                  type="text" inputMode="numeric" pattern="[0-9]*"
+                                  placeholder="Ex: 2500"
+                                  value={s.price_dzd}
+                                  onChange={e => updateSize(gi, si, 'price_dzd', e.target.value)}
+                                  style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Stock</label>
+                                <input
+                                  type="text" inputMode="numeric" pattern="[0-9]*"
+                                  placeholder="Ex: 10"
+                                  value={s.stock_quantity}
+                                  onChange={e => updateSize(gi, si, 'stock_quantity', e.target.value)}
+                                  style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px' }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
+
+                <button type="button" onClick={addColorGroup}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', border: '2px dashed var(--border)', borderRadius: '8px', background: 'transparent', color: 'var(--gold)', cursor: 'pointer', width: '100%', justifyContent: 'center', fontWeight: 500 }}
+                >
+                  <Plus size={16} /> Ajouter une couleur
+                </button>
               </div>
 
               <div className="modal-footer">
