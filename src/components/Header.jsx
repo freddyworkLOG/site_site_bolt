@@ -110,7 +110,7 @@ export default function Header() {
                     key={link.to}
                     to={link.to}
                     style={{
-                      color: location.pathname === link.to ? 'var(--gold)' : 'var(--text)',
+                      color: location.pathname === link.to ? 'var(--rose)' : 'var(--text)',
                       textDecoration: 'none',
                       fontWeight: location.pathname === link.to ? 600 : 400,
                       fontSize: '15px',
@@ -130,19 +130,22 @@ export default function Header() {
             style={{
               textDecoration: 'none',
               textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            <span
+            <img
+              src="/WhatsApp_Image_2026-06-21_at_10.45.40.jpeg"
+              alt="Be Princess Collection"
               style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '24px',
-                fontWeight: 600,
-                color: 'var(--text)',
-                letterSpacing: '0.02em',
+                height: isMobile ? '44px' : '54px',
+                width: 'auto',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                aspectRatio: '1',
               }}
-            >
-              Nouara
-            </span>
+            />
           </Link>
 
           {/* Right - Language toggle + Cart */}
@@ -154,7 +157,7 @@ export default function Header() {
                   key={lang.code}
                   onClick={() => handleLanguageChange(lang.code)}
                   style={{
-                    background: i18n.language === lang.code ? 'var(--gold)' : 'transparent',
+                    background: i18n.language === lang.code ? 'var(--rose)' : 'transparent',
                     color: i18n.language === lang.code ? 'var(--white)' : 'var(--text-muted)',
                     border: 'none',
                     padding: '4px 8px',
@@ -188,7 +191,7 @@ export default function Header() {
                     position: 'absolute',
                     top: '-6px',
                     insetInlineEnd: '-6px',
-                    backgroundColor: 'var(--gold)',
+                    backgroundColor: 'var(--rose)',
                     color: 'var(--white)',
                     fontSize: '11px',
                     fontWeight: 600,

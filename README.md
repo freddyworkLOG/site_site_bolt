@@ -1,15 +1,14 @@
 # Nouara - Elegant Modest Fashion E-Commerce
-*(working name — store name, logo, and color palette pending final client confirmation)*
 
 ## Project Overview
 
-A trilingual (EN/FR/AR with RTL support) modest fashion e-commerce platform targeting the Algerian market. Built with React + Vite, styled with Tailwind CSS + CSS Variables, powered by Supabase. Cash on delivery only, no customer accounts — guests checkout and leave.
+Nouara is a trilingual (EN/FR/AR with RTL support) modest fashion e-commerce platform targeting the Algerian market. Built with React + Vite, styled with Tailwind CSS + CSS Variables, and powered by Supabase.
 
 ### Business Context
-- **Target**: Algerian women seeking modest fashion, all 58 wilayas
+- **Target**: Algerian women seeking modest fashion
 - **Products**: Abayas, Jilbabs, Kimonos, Ensembles, Accessories
 - **Payment**: Cash on Delivery (COD) only — no online payment
-- **Delivery**: Yalidine & ZR Express (client chooses per order at checkout)
+- **Delivery**: Yalidine & ZR Express (all 58 wilayas)
 - **Currency**: Algerian Dinar (DZD)
 - **Reference sites**: bysarlin.com, leenach.com, anyelladz.com
 
@@ -25,8 +24,6 @@ A trilingual (EN/FR/AR with RTL support) modest fashion e-commerce platform targ
 | i18n | react-i18next (EN/FR/AR) |
 | Routing | react-router-dom v7 |
 | Backend | Supabase (PostgreSQL + Auth) |
-| Image storage | Cloudinary (planned — not yet wired in) |
-| Hosting | Netlify (not yet deployed) |
 
 ---
 
@@ -53,99 +50,99 @@ A trilingual (EN/FR/AR with RTL support) modest fashion e-commerce platform targ
 - **Body**: `Inter` (EN/FR), `Cairo` (AR)
 - Max 3 font weights
 
+### Spacing & Layout
+- 8px base unit
+- Container max-width: 1200px (`var(--max-width)`)
+- Header height: 60px mobile, 70px desktop (`var(--header-height)`)
+
 ### Key Design Rules
 - **NO purple/indigo/violet** colors — ever
 - Mobile-first responsive
 - RTL support via logical CSS properties (`insetInlineStart`, `insetInlineEnd`)
 - Arabic language switches entire UI font to Cairo + sets `dir="rtl"`
+- Stock photos from Pexels only
 
 ---
 
 ## Project File Structure
+
+```
 src/
-
-├── App.jsx                  # Routes — BrowserRouter with all routes (real entry point)
-
-├── main.jsx                 # Entry point — React 18 createRoot (real entry point)
-
-├── App.tsx / main.tsx       # ⚠️ Unused Bolt boilerplate, not loaded anywhere — safe to delete
-
+├── App.jsx                  # Routes — BrowserRouter with all routes
+├── main.jsx                 # Entry point — React 18 createRoot
 ├── index.css                # CSS variables + global resets + Tailwind
-
 ├── components/
-
-│   ├── Header.jsx           # Sticky header: nav, language switcher, cart icon
-
-│   ├── Footer.jsx
-
+│   ├── Header.jsx           # Sticky header: nav, language switcher (AR/FR/EN), cart icon
+│   ├── Footer.jsx           # Footer with links, social, contact
 │   ├── Layout.jsx           # Wraps Header + main + Footer
-
 │   └── ProductCard.jsx      # Shared card used by Home + Shop (+ skeleton export)
-
 ├── i18n/
-
-│   ├── index.js
-
-│   └── locales/{en,fr,ar}.json
-
+│   ├── index.js             # i18next init: LanguageDetector → localStorage → navigator
+│   └── locales/
+│       ├── en.json          # English translations (complete)
+│       ├── fr.json          # French translations (complete)
+│       └── ar.json          # Arabic translations (complete)
 ├── lib/
-
-│   ├── supabase.js          # createClient — returns null if env vars missing
-
-│   └── AuthProvider.jsx     # Auth context + ProtectedRoute (gates /admin/*)
-
+│   └── supabase.js          # createClient — returns null if env vars missing
 └── pages/
+    ├── Home.jsx             # Hero, category grid, new arrivals, trust strip
+    ├── Shop.jsx             # Product grid + filters + sort
+    ├── ProductPage.jsx      # Product detail — needs variant selector UI
+    ├── Cart.jsx             # Cart page — reads from localStorage key 'cart_items'
+    ├── Checkout.jsx         # Checkout form — needs order submission to DB
+    ├── OrderConfirmation.jsx # Order confirmed page
+    ├── HowToOrder.jsx       # Step-by-step guide page
+    └── admin/
+        ├── AdminLogin.jsx   # Admin login form (Supabase Auth — not yet wired)
+        └── AdminDashboard.jsx  # Shell only — "coming soon" placeholder
 
-├── Home.jsx
-
-├── Shop.jsx              # Product grid + filters + sort, accepts ?category=
-
-├── ProductPage.jsx       # Variant selector, add to cart
-
-├── Cart.jsx
-
-├── Checkout.jsx          # Form + order submission to Supabase
-
-├── OrderConfirmation.jsx # Reads order via get_order_by_id() RPC, not direct table SELECT
-
-├── HowToOrder.jsx
-
-└── admin/
-
-├── AdminLogin.jsx     # Supabase Auth email/password
-
-└── AdminDashboard.jsx # Product CRUD, order list + status updates
 supabase/
-
-└── migrations/   # ⚠️ Out of date — does not match live DB schema/policies.
-
-# Live schema is authoritative; see "Database Schema" below.
+└── migrations/
+    ├── 20260613095441_001_initial_schema.sql   # Products + variants tables + RLS + sample data
+    └── 20260614101048_002_add_category_column.sql  # Added category column + backfilled + index
+```
 
 ---
 
-## Database Schema (live, as of June 2026 security audit)
+## Database Schema
 
 ### `products`
-Same as before: `id, name_en/fr/ar, description_en/fr/ar, images (jsonb), category, is_active, created_at, updated_at`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | gen_random_uuid() |
+| name_en | text NOT NULL | |
+| name_fr | text NOT NULL | |
+| name_ar | text NOT NULL | |
+| description_en/fr/ar | text | |
+| images | jsonb | Array of URLs — first is main image |
+| category | text | 'abayas' \| 'jilbabs' \| 'kimonos' \| 'ensembles' \| 'accessories' |
+| is_active | boolean | Default true |
+| created_at / updated_at | timestamptz | |
 
 ### `product_variants`
-`id, product_id (FK), sku, size, color_en/fr/ar, price_dzd, stock_quantity, is_active`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | |
+| product_id | uuid FK | → products(id) ON DELETE CASCADE |
+| sku | text UNIQUE | |
+| size | text | 'S' \| 'M' \| 'L' \| 'XL' \| 'Free Size' |
+| color_en / color_fr / color_ar | text | |
+| price_dzd | integer NOT NULL | |
+| stock_quantity | integer | Default 0 |
+| is_active | boolean | Default true |
 
-### `orders`
-`id, customer_name, customer_phone, wilaya, commune, address, delivery_method, items (jsonb), subtotal, delivery_fee, total, status, tracking_number, notes, created_at, updated_at`
+### RLS Policies
+- Products: Public SELECT where `is_active = true`; authenticated INSERT/UPDATE/DELETE
+- Variants: Public SELECT where product is active and variant is active; authenticated INSERT/UPDATE/DELETE
 
-### `order_items`, `delivery_slips`
-Exist in the database (from initial Phase 3 setup) but **not currently used by any app code**. The app stores order line items as a JSON array directly inside `orders.items` instead. `delivery_slips` is reserved for Phase 5 (Yalidine/ZR integration) and is still empty.
-
-### RLS Policies (locked down, audited June 2026)
-- `products` / `product_variants`: public SELECT where `is_active = true`; all writes restricted to the single admin account (`auth.uid()` check, not generic `authenticated`)
-- `orders`: public INSERT only (guest checkout). **No public SELECT** — admin-only, scoped to the same admin UID. Public order lookup goes through `get_order_by_id(uuid)`, a `SECURITY DEFINER` function that returns exactly one row by ID — this is the only way the order-confirmation page can read order data without exposing the whole table.
-- `delivery_slips`: admin-only, zero public access
-
-### Server-side order validation
-A `BEFORE INSERT` trigger (`validate_and_price_order`) on `orders` recalculates `subtotal`/`delivery_fee`/`total` from the real `product_variants.price_dzd` values and rejects orders referencing invalid/inactive variants — the price the browser sends is never trusted.
-
-**Security principle for this codebase:** any public page that looks up a single row by ID should go through a `SECURITY DEFINER` RPC scoped to that ID, never a public `SELECT` policy with `USING (true)`. Apply this pattern to anything new that needs an unauthenticated single-record lookup.
+### Sample Data (already in DB)
+6 products, 15 variants:
+- Elegant Black Abaya (abayas) — 8500–9000 DZD
+- Flowing Jilbab (jilbabs) — 7200–7500 DZD
+- Silk Kimono (kimonos) — 12000 DZD
+- Modest Ensemble (ensembles) — 15000–15500 DZD
+- Embroidered Abaya (abayas) — 11000 DZD
+- Casual Jilbab (jilbabs) — 6500–6800 DZD
 
 ---
 
@@ -158,53 +155,72 @@ A `BEFORE INSERT` trigger (`validate_and_price_order`) on `orders` recalculates 
 | `/product/:id` | ProductPage | |
 | `/cart` | Cart | |
 | `/checkout` | Checkout | |
-| `/order-confirmation/:orderId` | OrderConfirmation | Uses `get_order_by_id()` RPC |
+| `/order-confirmation/:orderId` | OrderConfirmation | |
 | `/how-to-order` | HowToOrder | |
 | `/admin/login` | AdminLogin | |
-| `/admin/*` | AdminDashboard | **Guarded** — `ProtectedRoute` (client) + RLS (server) both gate this |
+| `/admin/*` | AdminDashboard | No auth guard currently |
 | `*` | → `/` | Redirect |
 
 ---
 
 ## Cart Implementation
 
-Stored in **localStorage** under `cart_items` as a JSON array:
+Cart is stored in **localStorage** under key `cart_items` as a JSON array. Each item shape (to define when building ProductPage):
 ```js
 {
   variantId: uuid,
   productId: uuid,
-  name: string,    // localized
-  image: string,
+  name: string,          // localized
+  image: string,         // URL
   size: string,
-  color: string,   // localized
-  price: number,   // DZD
+  color: string,         // localized
+  price: number,         // DZD
   quantity: number,
 }
 ```
-Header reads `cart_items` on every route change to show the badge count.
+Header reads `cart_items` on every route change to show badge count.
 
 ---
 
-## Current Status (as of June 20, 2026)
+## i18n Keys Reference
+
+All three locale files (`en.json`, `fr.json`, `ar.json`) have identical structure with these top-level namespaces:
+- `nav` — home, shop, howToOrder, cart
+- `common` — addToCart, loading, error, save, cancel, delete, edit, search, filter, price, total, quantity, size, color, stock, outOfStock, inStock, viewProduct, backToShop, viewAll, from
+- `home` — heroTitle, heroSubtitle, shopNow, shopByCategory, newArrivals, viewAll, noProducts, fromPrice, categories.*, trust.*
+- `shop` — title, noProducts, clearFilters, filters, allCategories, allSizes, allColors, sortBy, newest, priceLowHigh, priceHighLow, apply, clearAll, close, categories.*, sizes.*
+- `product` — selectSize, selectColor, quantity, addToCart, outOfStock, description, details, selectVariantFirst
+- `cart` — title, empty, continueShopping, remove, subtotal, proceedToCheckout, items
+- `checkout` — title, personalInfo, name, phone, phoneHint, delivery, wilaya, commune, address, addressHint, deliveryMethod, deliveryMethodHint, yalidine, zr, paymentMethod, cod, codDesc, orderSummary, placeOrder, required, invalidPhone
+- `confirmation` — title, subtitle, orderNumber, summary, whatNext, step1/2/3, continueShopping
+- `howToOrder` — title, subtitle, step1-5 Title+Desc
+- `admin` — login, email, password, signIn, signingIn, invalidCredentials, dashboard, products, orders, customers, inventory, addProduct, editProduct, deleteProduct, productName/Ar/Fr/En, description/Ar/Fr/En, category, price, uploadPhotos, uploadHint, variants, addVariant, size, color, stock, saveProduct, saving, productSaved, productDeleted, confirmDelete, orderStatus, pending, confirmed, shipped, delivered, cancelled, generateSlip, viewSlip, trackingNumber, signOut, totalOrders, totalProducts, pendingOrders, recentOrders
+
+---
+
+## Current Status
 
 ### Completed
-- [x] Routing, i18n (AR/RTL + FR + EN), design system
-- [x] Home, Shop, ProductPage, Cart, Checkout, OrderConfirmation, HowToOrder — all built
-- [x] Admin: login + dashboard with product CRUD and order management
-- [x] Supabase Auth wired, admin route protected (client + server)
-- [x] RLS fully audited and locked down to the specific admin account
-- [x] Public order-data exposure fixed (`get_order_by_id` RPC)
-- [x] Server-side price validation trigger (prevents price tampering on checkout)
-- [x] Basic bot honeypot on checkout form
+- [x] Full project setup (Vite + React + Tailwind + i18n + Supabase)
+- [x] Design system (CSS variables, fonts, spacing)
+- [x] RTL support (Arabic flips layout, logical CSS properties)
+- [x] Header: language switcher, sticky, cart badge, mobile hamburger drawer
+- [x] Footer
+- [x] Home page: hero, 5 category cards, new arrivals from Supabase, trust strip
+- [x] Shop page: product grid, category/size/color filters, sort, mobile bottom-sheet filters, desktop sidebar
+- [x] Shared ProductCard component + skeleton loader
+- [x] Database: products + variants tables, RLS, 6 sample products
+- [x] Category column added to products + backfilled
 
-### Known gaps
-- [ ] No real products yet — empty catalog, pending client meeting on colors/design
-- [ ] Cloudinary not wired in — admin currently pastes a raw image URL instead of uploading from phone
-- [ ] Stock isn't automatically reduced when an order comes in
-- [ ] No real rate-limiting on order submission (only the honeypot, which a targeted attacker could bypass)
-- [ ] Yalidine + ZR Express API integration not started (Phase 5)
-- [ ] Not deployed to Netlify yet (Phase 6)
-- [ ] Client handoff not done (Phase 7)
+### Needs Building
+- [ ] **ProductPage**: variant selector (size chips, color chips), quantity input, add-to-cart → localStorage
+- [ ] **Cart**: display items, update quantity, remove, subtotal, → checkout button
+- [ ] **Checkout**: form validation (name, Algerian phone regex `/^0[5-7][0-9]{8}$/`), wilaya dropdown (58 wilayas), submit order to Supabase `orders` table (not yet created)
+- [ ] **Orders table**: needs migration — customer info, items JSON, wilaya, delivery method, status, total
+- [ ] **OrderConfirmation**: show order details from Supabase by orderId
+- [ ] **Admin Dashboard**: full CRUD for products (with image upload), order list + status updates, delivery slip generation
+- [ ] **Auth**: wire up Supabase email/password auth for admin — AdminLogin → session → protect `/admin/*`
+- [ ] **Image upload**: Cloudinary or Supabase Storage
 
 ---
 
@@ -225,8 +241,8 @@ VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
 ```
 
-`.env` is gitignored — never commit real values. Get them from the Supabase dashboard.
+Both are pre-populated in `.env` — do not change them.
 
 ---
 
-*Last updated: 2026-06-20 — security audit complete (RLS lockdown, price-tampering fix, PII exposure fix), Phases 1-4 essentially done, Phase 5 (delivery APIs) up next.*
+*Last updated: 2026-06-15 (Sessions 1–3 complete: setup, Home, Shop)*

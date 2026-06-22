@@ -9,8 +9,23 @@ import { supabase } from '../../lib/supabase'
 
 const TABS = ['dashboard', 'products', 'orders']
 const CATEGORIES = ['abayas', 'jilbabs', 'kimonos', 'ensembles', 'accessories']
-const SIZES = ['S', 'M', 'L', 'XL', 'Free Size']
+const SIZES = ['S (36)', 'Taille 1 (38-40)', 'Taille 2 (42-44)', 'Taille 3 (Sur commande)']
 const STATUS_OPTIONS = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
+
+const COLOR_PALETTE = [
+  { hex: '#1a1a1a', color_en: 'Black', color_fr: 'Noir', color_ar: 'أسود' },
+  { hex: '#ffffff', color_en: 'White', color_fr: 'Blanc', color_ar: 'أبيض' },
+  { hex: '#E3D3B5', color_en: 'Beige', color_fr: 'Beige', color_ar: 'بيج' },
+  { hex: '#F5EFE0', color_en: 'Cream', color_fr: 'Crème', color_ar: 'كريمي' },
+  { hex: '#6B4226', color_en: 'Brown', color_fr: 'Marron', color_ar: 'بني' },
+  { hex: '#C19A6B', color_en: 'Camel', color_fr: 'Camel', color_ar: 'جملي' },
+  { hex: '#8C8C8C', color_en: 'Grey', color_fr: 'Gris', color_ar: 'رمادي' },
+  { hex: '#36454F', color_en: 'Charcoal', color_fr: 'Anthracite', color_ar: 'فحمي' },
+  { hex: '#1B2A4A', color_en: 'Navy', color_fr: 'Bleu Marine', color_ar: 'كحلي' },
+  { hex: '#6B6E3A', color_en: 'Olive', color_fr: 'Olive', color_ar: 'زيتي' },
+  { hex: '#5E2129', color_en: 'Burgundy', color_fr: 'Bordeaux', color_ar: 'خمري' },
+  { hex: '#C9A0A6', color_en: 'Dusty Rose', color_fr: 'Rose Poudré', color_ar: 'وردي ترابي' },
+]
 
 export default function AdminDashboard() {
   const { t, i18n } = useTranslation()
@@ -106,7 +121,7 @@ export default function AdminDashboard() {
           name_en, name_fr, name_ar,
           description_en, description_fr, description_ar,
           images, category, is_active,
-          product_variants (id, sku, size, color_en, price_dzd, stock_quantity)
+          product_variants (id, sku, size, color_en, color_fr, color_ar, price_dzd, stock_quantity)
         `)
         .order('created_at', { ascending: false })
 
@@ -155,7 +170,7 @@ export default function AdminDashboard() {
       category: 'abayas',
       images: [],
       is_active: true,
-      variants: [{ size: 'M', color_en: '', price_dzd: 0, stock_quantity: 0 }]
+      variants: [{ size: 'S (36)', color_en: '', color_fr: '', color_ar: '', price_dzd: 0, stock_quantity: 0 }]
     }
   }
 
@@ -181,6 +196,7 @@ export default function AdminDashboard() {
 
   const handleProductSubmit = async (e) => {
     e.preventDefault()
+    const saving = true
 
     try {
       const productData = {
@@ -196,18 +212,15 @@ export default function AdminDashboard() {
       }
 
       if (editingProduct) {
-        const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id)
-        if (error) throw error
+        await supabase.from('products').update(productData).eq('id', editingProduct.id)
       } else {
-        const { data: newProduct, error } = await supabase.from('products').insert(productData).select('id').single()
-        if (error) throw error
+        const { data: newProduct } = await supabase.from('products').insert(productData).select('id').single()
         if (newProduct) {
           for (const variant of productForm.variants) {
-            const { error: variantError } = await supabase.from('product_variants').insert({
+            await supabase.from('product_variants').insert({
               product_id: newProduct.id,
               ...variant
             })
-            if (variantError) throw variantError
           }
         }
       }
@@ -216,7 +229,6 @@ export default function AdminDashboard() {
       closeProductModal()
     } catch (err) {
       console.error('Error saving product:', err)
-      alert('Failed to save product: ' + (err.message || 'unknown error'))
     }
   }
 
@@ -548,16 +560,65 @@ export default function AdminDashboard() {
                   <button type="button" onClick={() => setProductForm({ ...productForm, variants: [...productForm.variants, getEmptyProduct().variants[0]] })} className="icon-btn"><Plus size={18} /></button>
                 </div>
                 {productForm.variants.map((v, i) => (
-                  <div key={i} className="variant-row">
-                    <select value={v.size} onChange={e => { const newVariants = [...productForm.variants]; newVariants[i].size = e.target.value; setProductForm({ ...productForm, variants: newVariants }); }}>
-                      {SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    <input type="text" placeholder="Color" value={v.color_en || ''} onChange={e => { const newVariants = [...productForm.variants]; newVariants[i].color_en = e.target.value; setProductForm({ ...productForm, variants: newVariants }); }} />
-                    <input type="number" placeholder="Price" value={v.price_dzd || ''} onChange={e => { const newVariants = [...productForm.variants]; newVariants[i].price_dzd = parseInt(e.target.value) || 0; setProductForm({ ...productForm, variants: newVariants }); }} />
-                    <input type="number" placeholder="Stock" value={v.stock_quantity || ''} onChange={e => { const newVariants = [...productForm.variants]; newVariants[i].stock_quantity = parseInt(e.target.value) || 0; setProductForm({ ...productForm, variants: newVariants }); }} />
-                    {productForm.variants.length > 1 && (
-                      <button type="button" onClick={() => setProductForm({ ...productForm, variants: productForm.variants.filter((_, idx) => idx !== i) })} className="icon-btn danger"><X size={16} /></button>
-                    )}
+                  <div key={i} className="variant-card">
+                    <div className="variant-field">
+                      <label>Size</label>
+                      <div className="size-buttons">
+                        {SIZES.map(s => (
+                          <button
+                            key={s}
+                            type="button"
+                            className={`size-btn ${v.size === s ? 'active' : ''}`}
+                            onClick={() => {
+                              const newVariants = [...productForm.variants]
+                              newVariants[i].size = s
+                              setProductForm({ ...productForm, variants: newVariants })
+                            }}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="variant-field">
+                      <label>Color</label>
+                      <div className="color-swatches">
+                        {COLOR_PALETTE.map(c => (
+                          <button
+                            key={c.hex}
+                            type="button"
+                            className={`color-swatch ${v.color_en === c.color_en ? 'active' : ''}`}
+                            style={{ backgroundColor: c.hex, border: c.hex === '#ffffff' || c.hex === '#F5EFE0' ? '1px solid #ddd' : 'none' }}
+                            title={`${c.color_en} / ${c.color_fr}`}
+                            onClick={() => {
+                              const newVariants = [...productForm.variants]
+                              newVariants[i].color_en = c.color_en
+                              newVariants[i].color_fr = c.color_fr
+                              newVariants[i].color_ar = c.color_ar
+                              setProductForm({ ...productForm, variants: newVariants })
+                            }}
+                          />
+                        ))}
+                      </div>
+                      {v.color_en && (
+                        <span className="selected-color-name">
+                          {v.color_en} / {v.color_fr}
+                        </span>
+                      )}
+                    </div>
+                    <div className="variant-row-inline">
+                      <div className="variant-field">
+                        <label>Price (DZD)</label>
+                        <input type="number" placeholder="Price" value={v.price_dzd || ''} onChange={e => { const newVariants = [...productForm.variants]; newVariants[i].price_dzd = parseInt(e.target.value) || 0; setProductForm({ ...productForm, variants: newVariants }); }} />
+                      </div>
+                      <div className="variant-field">
+                        <label>Stock</label>
+                        <input type="number" placeholder="Stock" value={v.stock_quantity || ''} onChange={e => { const newVariants = [...productForm.variants]; newVariants[i].stock_quantity = parseInt(e.target.value) || 0; setProductForm({ ...productForm, variants: newVariants }); }} />
+                      </div>
+                      {productForm.variants.length > 1 && (
+                        <button type="button" onClick={() => setProductForm({ ...productForm, variants: productForm.variants.filter((_, idx) => idx !== i) })} className="icon-btn danger"><X size={16} /></button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -810,6 +871,103 @@ export default function AdminDashboard() {
           margin-top: 24px;
           padding-top: 24px;
           border-top: 1px solid var(--border);
+        }
+
+        .variant-card {
+          background: var(--cream);
+          border-radius: 12px;
+          padding: 16px;
+          margin-bottom: 12px;
+        }
+
+        .variant-card .variant-field {
+          margin-bottom: 12px;
+        }
+
+        .variant-card .variant-field label {
+          display: block;
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--text-muted);
+          margin-bottom: 8px;
+          text-transform: uppercase;
+        }
+
+        .size-buttons {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .size-btn {
+          padding: 8px 12px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: var(--white);
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .size-btn:hover {
+          border-color: var(--gold);
+        }
+
+        .size-btn.active {
+          background: var(--gold);
+          color: var(--white);
+          border-color: var(--gold);
+        }
+
+        .color-swatches {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .color-swatch {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          padding: 0;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .color-swatch:hover {
+          transform: scale(1.1);
+        }
+
+        .color-swatch.active {
+          box-shadow: 0 0 0 3px var(--gold);
+        }
+
+        .selected-color-name {
+          display: inline-block;
+          margin-top: 8px;
+          font-size: 13px;
+          color: var(--text-muted);
+          font-style: italic;
+        }
+
+        .variant-row-inline {
+          display: flex;
+          gap: 12px;
+          align-items: flex-end;
+        }
+
+        .variant-row-inline .variant-field {
+          flex: 1;
+          margin-bottom: 0;
+        }
+
+        .variant-row-inline input {
+          width: 100%;
+          padding: 10px 14px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          font-size: 14px;
         }
 
         .variant-row {

@@ -6,15 +6,6 @@ import Layout from '../components/Layout'
 import ProductCard, { ProductCardSkeleton } from '../components/ProductCard'
 import { supabase } from '../lib/supabase'
 
-// Category configuration - easy to swap out later
-const CATEGORIES = [
-  { slug: 'abayas', image: 'https://images.pexels.com/photos/7679720/pexels-photo-7679720.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { slug: 'jilbabs', image: 'https://images.pexels.com/photos/6767538/pexels-photo-6767538.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { slug: 'kimonos', image: 'https://images.pexels.com/photos/5370682/pexels-photo-5370682.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { slug: 'ensembles', image: 'https://images.pexels.com/photos/6269449/pexels-photo-6269449.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  { slug: 'accessories', image: 'https://images.pexels.com/photos/6920424/pexels-photo-6920424.jpeg?auto=compress&cs=tinysrgb&w=400' },
-]
-
 export default function Home() {
   const { t, i18n } = useTranslation()
   const [products, setProducts] = useState([])
@@ -44,7 +35,7 @@ export default function Home() {
           `)
           .eq('is_active', true)
           .order('created_at', { ascending: false })
-          .limit(8)
+          .limit(6)
 
         if (!error && data) {
           const formatted = data.map(product => {
@@ -108,11 +99,11 @@ export default function Home() {
           <h1
             style={{
               fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
-              fontSize: 'clamp(48px, 10vw, 72px)',
+              fontSize: 'clamp(28px, 6vw, 52px)',
               fontWeight: 600,
               color: 'var(--text)',
               marginBottom: '16px',
-              letterSpacing: isRTL ? '0' : '0.02em',
+              letterSpacing: isRTL ? '0' : '0.03em',
             }}
           >
             {t('home.heroTitle')}
@@ -136,7 +127,7 @@ export default function Home() {
               alignItems: 'center',
               gap: '8px',
               padding: '16px 32px',
-              backgroundColor: 'var(--gold)',
+              backgroundColor: 'var(--rose)',
               color: 'var(--white)',
               textDecoration: 'none',
               borderRadius: '8px',
@@ -152,117 +143,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SHOP BY CATEGORY */}
-      <section style={{ padding: '48px 0' }}>
-        <div className="container">
-          <h2
-            style={{
-              fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
-              fontSize: 'clamp(24px, 5vw, 32px)',
-              fontWeight: 600,
-              textAlign: 'center',
-              marginBottom: '32px',
-              color: 'var(--text)',
-            }}
-          >
-            {t('home.shopByCategory')}
-          </h2>
-
-          {/* Horizontal scroll on mobile, grid on desktop */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '16px',
-              overflowX: 'auto',
-              scrollSnapType: 'x mandatory',
-              WebkitOverflowScrolling: 'touch',
-              paddingBottom: '16px',
-              scrollbarWidth: 'none',
-            }}
-            className="category-scroll"
-          >
-            {CATEGORIES.map((cat) => (
-              <Link
-                key={cat.slug}
-                to={`/shop?category=${cat.slug}`}
-                style={{
-                  flex: '0 0 140px',
-                  scrollSnapAlign: 'start',
-                  textDecoration: 'none',
-                }}
-              >
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '140px',
-                    height: '180px',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    transition: 'transform 0.2s ease',
-                  }}
-                >
-                  <img
-                    src={cat.image}
-                    alt={t(`home.categories.${cat.slug}`)}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)',
-                    }}
-                  />
-                  <span
-                    style={{
-                      position: 'absolute',
-                      bottom: '12px',
-                      insetInlineStart: '12px',
-                      insetInlineEnd: '12px',
-                      color: 'var(--white)',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {t(`home.categories.${cat.slug}`)}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* DESKTOP CATEGORY GRID (hidden on mobile) */}
-      <style>{`
-        @media (min-width: 768px) {
-          .category-scroll {
-            display: grid !important;
-            grid-template-columns: repeat(5, 1fr);
-            overflow-x: visible !important;
-            gap: 20px !important;
-          }
-          .category-scroll > a {
-            flex: none !important;
-            scroll-snap-align: unset !important;
-          }
-          .category-scroll > a > div {
-            width: 100% !important;
-            height: 220px !important;
-          }
-        }
-        .category-scroll::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-
-      {/* NEW ARRIVALS */}
+      {/* FEATURED PRODUCTS */}
       <section style={{ padding: '48px 0', backgroundColor: 'var(--beige)' }}>
         <div className="container">
           <div
@@ -281,7 +162,7 @@ export default function Home() {
                 color: 'var(--text)',
               }}
             >
-              {t('home.newArrivals')}
+              {t('home.featuredTitle')}
             </h2>
             <Link
               to="/shop"
@@ -289,7 +170,7 @@ export default function Home() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                color: 'var(--gold)',
+                color: 'var(--rose)',
                 textDecoration: 'none',
                 fontSize: '14px',
                 fontWeight: 500,
@@ -360,7 +241,7 @@ export default function Home() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'var(--gold)',
+                  color: 'var(--rose)',
                 }}
               >
                 <Banknote size={24} />
@@ -386,7 +267,7 @@ export default function Home() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'var(--gold)',
+                  color: 'var(--rose)',
                 }}
               >
                 <Truck size={24} />
@@ -412,7 +293,7 @@ export default function Home() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'var(--gold)',
+                  color: 'var(--rose)',
                 }}
               >
                 <BadgeCheck size={24} />

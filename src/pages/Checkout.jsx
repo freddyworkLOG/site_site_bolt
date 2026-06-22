@@ -29,13 +29,14 @@ const [loading, setLoading] = useState(true)
 
   // Form state
   const [formData, setFormData] = useState({
-    customer_name: '',
+    first_name: '',
+    last_name: '',
     customer_phone: '',
+    customer_phone_2: '',
     wilaya: '',
     commune: '',
     address: '',
     delivery_method: 'yalidine',
-    website: '',  //honeypot for spams
   })
 
   // Load cart
@@ -84,14 +85,22 @@ const [loading, setLoading] = useState(true)
   const validateForm = () => {
     const newErrors = {}
 
-    if (!formData.customer_name.trim()) {
-      newErrors.customer_name = t('checkout.required')
+    if (!formData.first_name.trim()) {
+      newErrors.first_name = t('checkout.required')
+    }
+
+    if (!formData.last_name.trim()) {
+      newErrors.last_name = t('checkout.required')
     }
 
     if (!formData.customer_phone.trim()) {
       newErrors.customer_phone = t('checkout.required')
     } else if (!validatePhone(formData.customer_phone)) {
       newErrors.customer_phone = t('checkout.invalidPhone')
+    }
+
+    if (formData.customer_phone_2.trim() && !validatePhone(formData.customer_phone_2)) {
+      newErrors.customer_phone_2 = t('checkout.invalidPhone')
     }
 
     if (!formData.wilaya) {
@@ -115,7 +124,6 @@ const [loading, setLoading] = useState(true)
     e.preventDefault()
 
     if (!validateForm()) return
-    if (formData.website) return // bot filled the hidden field — quietly stop
     if (!supabase) {
       setErrors({ submit: 'Database not configured' })
       return
@@ -125,8 +133,9 @@ const [loading, setLoading] = useState(true)
 
     try {
       const orderData = {
-        customer_name: formData.customer_name.trim(),
+        customer_name: `${formData.first_name.trim()} ${formData.last_name.trim()}`,
         customer_phone: formData.customer_phone.replace(/\s/g, ''),
+        customer_phone_2: formData.customer_phone_2.trim() ? formData.customer_phone_2.replace(/\s/g, '') : null,
         wilaya: formData.wilaya,
         commune: formData.commune.trim(),
         address: formData.address.trim(),
@@ -214,16 +223,6 @@ const [loading, setLoading] = useState(true)
         </h1>
 
         <form onSubmit={handleSubmit} className="checkout-form">
-          <input
-            type="text"
-            name="website"
-            value={formData.website}
-            onChange={(e) => handleChange('website', e.target.value)}
-            autoComplete="off"
-            tabIndex="-1"
-            style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }}
-            aria-hidden="true"
-          />
           {/* Main content */}
           <div className="checkout-main">
             {/* Personal info */}
@@ -233,19 +232,36 @@ const [loading, setLoading] = useState(true)
                 {t('checkout.personalInfo')}
               </h2>
 
-              <div className="form-group">
-                <label htmlFor="name">{t('checkout.name')} *</label>
-                <input
-                  type="text"
-                  id="name"
-                  value={formData.customer_name}
-                  onChange={(e) => handleChange('customer_name', e.target.value)}
-                  placeholder={t('checkout.name')}
-                  className={errors.customer_name ? 'error' : ''}
-                />
-                {errors.customer_name && (
-                  <span className="error-message">{errors.customer_name}</span>
-                )}
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="first_name">{t('checkout.firstName')} *</label>
+                  <input
+                    type="text"
+                    id="first_name"
+                    value={formData.first_name}
+                    onChange={(e) => handleChange('first_name', e.target.value)}
+                    placeholder={t('checkout.firstName')}
+                    className={errors.first_name ? 'error' : ''}
+                  />
+                  {errors.first_name && (
+                    <span className="error-message">{errors.first_name}</span>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="last_name">{t('checkout.lastName')} *</label>
+                  <input
+                    type="text"
+                    id="last_name"
+                    value={formData.last_name}
+                    onChange={(e) => handleChange('last_name', e.target.value)}
+                    placeholder={t('checkout.lastName')}
+                    className={errors.last_name ? 'error' : ''}
+                  />
+                  {errors.last_name && (
+                    <span className="error-message">{errors.last_name}</span>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
@@ -261,6 +277,22 @@ const [loading, setLoading] = useState(true)
                 <span className="hint">{t('checkout.phoneHint')}</span>
                 {errors.customer_phone && (
                   <span className="error-message">{errors.customer_phone}</span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="phone2">{t('checkout.phone2')}</label>
+                <input
+                  type="tel"
+                  id="phone2"
+                  value={formData.customer_phone_2}
+                  onChange={(e) => handleChange('customer_phone_2', e.target.value)}
+                  placeholder="0555 123 456"
+                  className={errors.customer_phone_2 ? 'error' : ''}
+                />
+                <span className="hint">{t('checkout.phone2Hint')}</span>
+                {errors.customer_phone_2 && (
+                  <span className="error-message">{errors.customer_phone_2}</span>
                 )}
               </div>
             </section>

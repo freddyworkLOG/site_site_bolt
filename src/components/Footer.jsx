@@ -24,16 +24,29 @@ export default function Footer() {
           textAlign: 'center',
         }}
       >
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <img
+            src="/WhatsApp_Image_2026-06-21_at_10.45.40.jpeg"
+            alt="Be Princess Collection"
+            style={{
+              height: '56px',
+              width: '56px',
+              borderRadius: '50%',
+              objectFit: 'cover',
+            }}
+          />
+        </div>
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: '22px',
+            fontSize: '18px',
             fontWeight: 600,
             color: 'var(--text)',
             marginBottom: '16px',
+            letterSpacing: '0.05em',
           }}
         >
-          Nouara
+          Be Princess Collection
         </h2>
 
         <nav
@@ -67,7 +80,7 @@ export default function Footer() {
             fontSize: '13px',
           }}
         >
-          © {new Date().getFullYear()} Nouara. {t('home.hero')}.
+          © {new Date().getFullYear()} Be Princess Collection.
         </p>
       </div>
     </footer>

@@ -24,7 +24,9 @@ export default function OrderConfirmation() {
 
       try {
         const { data, error: fetchError } = await supabase
-          .rpc('get_order_by_id', { p_order_id: orderId })
+          .from('orders')
+          .select('*')
+          .eq('id', orderId)
           .single()
 
         if (fetchError) throw fetchError

@@ -6,18 +6,23 @@
 
 :root {
   /* Colors */
-  --cream: #FAF7F2;
-  --beige: #F0E9DC;
-  --beige-dark: #E0D4C0;
-  --gold: #C9A87C;
-  --gold-light: #DDBF96;
-  --taupe: #9C8878;
-  --text: #2C2524;
-  --text-muted: #8C7B6B;
-  --border: #E5DDD0;
+  --cream: #FFFFFF;
+  --beige: #F7F3F2;
+  --beige-dark: #E8DEDC;
+  --rose: #C9A0A6;
+  --rose-light: #DEBFC3;
+  --rose-dark: #A67C82;
+  --text: #1A1A1A;
+  --text-muted: #6B6260;
+  --border: #EDE3E1;
   --white: #FFFFFF;
   --success: #6B9E78;
   --error: #C97070;
+
+  /* Backward-compat aliases so un-touched files still work */
+  --gold: var(--rose);
+  --gold-light: var(--rose-light);
+  --taupe: var(--rose-dark);
 
   /* Typography */
   --font-display: 'Playfair Display', Georgia, serif;
