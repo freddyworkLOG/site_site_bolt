@@ -5,6 +5,21 @@ import { ArrowLeft, Minus, Plus, ShoppingBag, AlertCircle, Check } from 'lucide-
 import Layout from '../components/Layout'
 import { supabase } from '../lib/supabase'
 
+const COLOR_PALETTE = [
+  { hex: '#1a1a1a', color_en: 'Black' },
+  { hex: '#ffffff', color_en: 'White' },
+  { hex: '#E3D3B5', color_en: 'Beige' },
+  { hex: '#F5EFE0', color_en: 'Cream' },
+  { hex: '#6B4226', color_en: 'Brown' },
+  { hex: '#C19A6B', color_en: 'Camel' },
+  { hex: '#8C8C8C', color_en: 'Grey' },
+  { hex: '#36454F', color_en: 'Charcoal' },
+  { hex: '#1B2A4A', color_en: 'Navy' },
+  { hex: '#6B6E3A', color_en: 'Olive' },
+  { hex: '#5E2129', color_en: 'Burgundy' },
+  { hex: '#C9A0A6', color_en: 'Dusty Rose' },
+]
+
 export default function ProductPage() {
   const { t, i18n } = useTranslation()
   const { id } = useParams()
@@ -383,15 +398,24 @@ export default function ProductPage() {
               <div className="selector-section">
                 <label className="selector-label">{t('common.color')}</label>
                 <div className="chips">
-                  {availableColors.map(color => (
-                    <button
-                      key={color.en}
-                      onClick={() => setSelectedColor(color.en)}
-                      className={`chip ${selectedColor === color.en ? 'selected' : ''}`}
-                    >
-                      {i18n.language === 'ar' ? color.ar : i18n.language === 'fr' ? color.fr : color.en}
-                    </button>
-                  ))}
+                  {availableColors.map(color => {
+                    const palette = COLOR_PALETTE.find(c => c.color_en === color.en)
+                    const colorName = i18n.language === 'ar' ? color.ar : i18n.language === 'fr' ? color.fr : color.en
+                    return (
+                      <button
+                        key={color.en}
+                        onClick={() => setSelectedColor(color.en)}
+                        className={`color-option ${selectedColor === color.en ? 'selected' : ''}`}
+                      >
+                        <span className="color-dot" style={{
+                          width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
+                          backgroundColor: palette?.hex || '#cccccc',
+                          border: (palette?.hex === '#ffffff' || palette?.hex === '#F5EFE0') ? '1px solid #ddd' : '1px solid rgba(0,0,0,0.08)'
+                        }} />
+                        <span>{colorName}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -590,6 +614,28 @@ export default function ProductPage() {
           border: 2px solid var(--gold);
           color: var(--text);
           background: var(--cream);
+        }
+
+        .color-option {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 14px;
+          border: 2px solid var(--border);
+          border-radius: 8px;
+          background: var(--white);
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text);
+          transition: border-color 0.2s ease;
+        }
+        .color-option.selected {
+          border-color: var(--gold);
+          background: var(--cream);
+        }
+        .color-option:hover {
+          border-color: var(--gold-light);
         }
 
         .stock-status.ok { color: var(--success); }

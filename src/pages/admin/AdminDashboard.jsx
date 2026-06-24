@@ -165,47 +165,48 @@ export default function AdminDashboard() {
   // Product CRUD
   function getEmptyProduct() {
     return {
-      name_en: '', name_fr: '', name_ar: '',
-      description_en: '', description_fr: '', description_ar: '',
+      name: '',
+      description: '',
+      price_dzd: '',
       category: 'abayas',
       images: [],
       is_active: true,
-      colorGroups: []
+      selectedColors: {},
     }
   }
 
-  function getEmptyColorGroup() {
-    return {
-      hex: '',
-      color_en: '',
-      color_fr: '',
-      color_ar: '',
-      sizes: SIZES.map(s => ({ size: s, enabled: false, price_dzd: '', stock_quantity: '' }))
-    }
-  }
+  // selectedColors shape: { color_en: { hex, color_fr, color_ar, sizes: { 'S (36)': { enabled, stock } } } }
 
   const openProductModal = (product = null) => {
     if (product) {
-      const groupMap = {}
-      for (const v of (product.product_variants || [])) {
-        if (!groupMap[v.color_en]) {
+      const variants = product.product_variants || []
+      const firstPrice = variants[0]?.price_dzd?.toString() || ''
+      const selectedColors = {}
+      for (const v of variants) {
+        if (!selectedColors[v.color_en]) {
           const palette = COLOR_PALETTE.find(c => c.color_en === v.color_en)
-          groupMap[v.color_en] = {
+          selectedColors[v.color_en] = {
             hex: palette?.hex || '#cccccc',
-            color_en: v.color_en,
             color_fr: v.color_fr,
             color_ar: v.color_ar,
-            sizes: SIZES.map(s => ({ size: s, enabled: false, price_dzd: '', stock_quantity: '' }))
+            sizes: Object.fromEntries(SIZES.map(s => [s, { enabled: false, stock: '' }]))
           }
         }
-        const sizeIdx = groupMap[v.color_en].sizes.findIndex(s => s.size === v.size)
-        if (sizeIdx >= 0) {
-          groupMap[v.color_en].sizes[sizeIdx].enabled = true
-          groupMap[v.color_en].sizes[sizeIdx].price_dzd = v.price_dzd?.toString() || ''
-          groupMap[v.color_en].sizes[sizeIdx].stock_quantity = v.stock_quantity?.toString() || ''
+        if (selectedColors[v.color_en].sizes[v.size]) {
+          selectedColors[v.color_en].sizes[v.size].enabled = true
+          selectedColors[v.color_en].sizes[v.size].stock = v.stock_quantity?.toString() || ''
         }
       }
-      setProductForm({ ...product, colorGroups: Object.values(groupMap) })
+      setProductForm({
+        name: product.name_en || '',
+        description: product.description_en || '',
+        price_dzd: firstPrice,
+        category: product.category,
+        images: product.images || [],
+        is_active: product.is_active,
+        selectedColors,
+        _id: product.id
+      })
       setEditingProduct(product)
     } else {
       setProductForm(getEmptyProduct())
@@ -220,41 +221,49 @@ export default function AdminDashboard() {
     setProductForm(getEmptyProduct())
   }
 
-  const addColorGroup = () => setProductForm(prev => ({ ...prev, colorGroups: [...prev.colorGroups, getEmptyColorGroup()] }))
-  const removeColorGroup = (gi) => setProductForm(prev => ({ ...prev, colorGroups: prev.colorGroups.filter((_, i) => i !== gi) }))
-  const updateColorGroup = (gi, updates) => setProductForm(prev => {
-    const groups = [...prev.colorGroups]
-    groups[gi] = { ...groups[gi], ...updates }
-    return { ...prev, colorGroups: groups }
+  const toggleColor = (c) => setProductForm(prev => {
+    const sc = { ...prev.selectedColors }
+    if (sc[c.color_en]) {
+      delete sc[c.color_en]
+    } else {
+      sc[c.color_en] = {
+        hex: c.hex, color_fr: c.color_fr, color_ar: c.color_ar,
+        sizes: Object.fromEntries(SIZES.map(s => [s, { enabled: false, stock: '' }]))
+      }
+    }
+    return { ...prev, selectedColors: sc }
   })
-  const toggleSize = (gi, si) => setProductForm(prev => {
-    const groups = prev.colorGroups.map((g, i) => i !== gi ? g : {
-      ...g, sizes: g.sizes.map((s, j) => j !== si ? s : { ...s, enabled: !s.enabled })
-    })
-    return { ...prev, colorGroups: groups }
+
+  const toggleSize = (colorEn, size) => setProductForm(prev => {
+    const sc = { ...prev.selectedColors }
+    sc[colorEn] = { ...sc[colorEn], sizes: { ...sc[colorEn].sizes, [size]: { ...sc[colorEn].sizes[size], enabled: !sc[colorEn].sizes[size].enabled } } }
+    return { ...prev, selectedColors: sc }
   })
-  const updateSize = (gi, si, field, value) => setProductForm(prev => {
-    const groups = prev.colorGroups.map((g, i) => i !== gi ? g : {
-      ...g, sizes: g.sizes.map((s, j) => j !== si ? s : { ...s, [field]: value })
-    })
-    return { ...prev, colorGroups: groups }
+
+  const updateStock = (colorEn, size, value) => setProductForm(prev => {
+    const sc = { ...prev.selectedColors }
+    sc[colorEn] = { ...sc[colorEn], sizes: { ...sc[colorEn].sizes, [size]: { ...sc[colorEn].sizes[size], stock: value } } }
+    return { ...prev, selectedColors: sc }
   })
 
   const handleProductSubmit = async (e) => {
     e.preventDefault()
+    const price = parseInt(productForm.price_dzd) || 0
     try {
       const productData = {
-        name_en: productForm.name_en, name_fr: productForm.name_fr, name_ar: productForm.name_ar,
-        description_en: productForm.description_en, description_fr: productForm.description_fr, description_ar: productForm.description_ar,
+        name_en: productForm.name, name_fr: productForm.name, name_ar: productForm.name,
+        description_en: productForm.description, description_fr: productForm.description, description_ar: productForm.description,
         category: productForm.category, images: productForm.images, is_active: productForm.is_active,
       }
 
-      const variantsFlat = productForm.colorGroups.flatMap(group =>
-        group.sizes.filter(s => s.enabled && group.color_en).map(s => ({
-          color_en: group.color_en, color_fr: group.color_fr, color_ar: group.color_ar,
-          size: s.size,
-          price_dzd: parseInt(s.price_dzd) || 0,
-          stock_quantity: parseInt(s.stock_quantity) || 0,
+      const variantsFlat = Object.entries(productForm.selectedColors).flatMap(([color_en, info]) =>
+        SIZES.filter(s => info.sizes[s]?.enabled).map(s => ({
+          color_en,
+          color_fr: info.color_fr,
+          color_ar: info.color_ar,
+          size: s,
+          price_dzd: price,
+          stock_quantity: parseInt(info.sizes[s].stock) || 0,
           is_active: true
         }))
       )
@@ -578,91 +587,76 @@ export default function AdminDashboard() {
               <button onClick={closeProductModal} className="icon-btn"><X size={20} /></button>
             </div>
             <form onSubmit={handleProductSubmit} className="modal-body">
-              <div className="form-tabs">
-                <div className="form-group">
-                  <label>Name (EN)</label>
-                  <input type="text" value={productForm.name_en} onChange={e => setProductForm({ ...productForm, name_en: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label>Name (FR)</label>
-                  <input type="text" value={productForm.name_fr} onChange={e => setProductForm({ ...productForm, name_fr: e.target.value })} />
-                </div>
-                <div className="form-group">
-                  <label>Name (AR)</label>
-                  <input type="text" value={productForm.name_ar} onChange={e => setProductForm({ ...productForm, name_ar: e.target.value })} dir="rtl" />
-                </div>
-                <div className="form-group">
-                  <label>{t('admin.category')}</label>
+              <div className="form-group">
+                <label>Nom du produit</label>
+                <input type="text" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} placeholder="Ex: Abaya Klassique" required />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label>Catégorie</label>
                   <select value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })}>
                     {CATEGORIES.map(c => <option key={c} value={c}>{t(`shop.categories.${c}`)}</option>)}
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Image URL</label>
-                  <input type="url" value={productForm.images?.[0] || ''} onChange={e => setProductForm({ ...productForm, images: [e.target.value] })} placeholder="https://..." />
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label>Prix (DZD)</label>
+                  <input type="text" inputMode="numeric" pattern="[0-9]*" value={productForm.price_dzd} onChange={e => setProductForm({ ...productForm, price_dzd: e.target.value })} placeholder="Ex: 2500" required />
                 </div>
-                {productForm.images?.[0] && (
-                  <img src={productForm.images[0]} alt="Preview" style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />
-                )}
               </div>
 
+              <div className="form-group" style={{ marginTop: '16px' }}>
+                <label>Image URL</label>
+                <input type="url" value={productForm.images?.[0] || ''} onChange={e => setProductForm({ ...productForm, images: [e.target.value] })} placeholder="https://images.pexels.com/..." />
+              </div>
+              {productForm.images?.[0] && (
+                <img src={productForm.images[0]} alt="Preview" style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '16px' }} />
+              )}
+
               <div className="variants-section">
-                <h4 style={{ marginBottom: '12px', fontWeight: 600 }}>Couleurs et tailles disponibles</h4>
-
-                {productForm.colorGroups.map((group, gi) => (
-                  <div key={gi} className="color-group-card" style={{ border: '1px solid var(--border)', borderRadius: '10px', padding: '16px', marginBottom: '12px', background: 'var(--beige)' }}>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {group.hex && <div style={{ width: 22, height: 22, borderRadius: '50%', background: group.hex, border: '1px solid #ccc', flexShrink: 0 }} />}
-                        <span style={{ fontWeight: 500, fontSize: '14px' }}>{group.color_fr || 'Sélectionner une couleur'}</span>
-                      </div>
-                      <button type="button" onClick={() => removeColorGroup(gi)} className="icon-btn danger"><X size={16} /></button>
+                <h4 style={{ marginBottom: '10px', fontWeight: 600, fontSize: '14px' }}>Couleurs disponibles</h4>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>Cliquez pour sélectionner</p>
+                <div className="color-swatches" style={{ marginBottom: '20px' }}>
+                  {COLOR_PALETTE.map(c => (
+                    <div key={c.hex} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <button type="button"
+                        className={`color-swatch ${productForm.selectedColors[c.color_en] ? 'active' : ''}`}
+                        style={{ backgroundColor: c.hex, border: c.hex === '#ffffff' || c.hex === '#F5EFE0' ? '1px solid #ddd' : 'none' }}
+                        title={c.color_fr}
+                        onClick={() => toggleColor(c)}
+                      />
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', maxWidth: '36px', textAlign: 'center', lineHeight: 1.2 }}>{c.color_fr}</span>
                     </div>
+                  ))}
+                </div>
 
-                    <div className="color-swatches" style={{ marginBottom: '14px' }}>
-                      {COLOR_PALETTE.map(c => (
-                        <button key={c.hex} type="button"
-                          className={`color-swatch ${group.color_en === c.color_en ? 'active' : ''}`}
-                          style={{ backgroundColor: c.hex, border: c.hex === '#ffffff' || c.hex === '#F5EFE0' ? '1px solid #ddd' : 'none' }}
-                          title={`${c.color_fr}`}
-                          onClick={() => updateColorGroup(gi, { hex: c.hex, color_en: c.color_en, color_fr: c.color_fr, color_ar: c.color_ar })}
-                        />
-                      ))}
+                {Object.entries(productForm.selectedColors).map(([colorEn, info]) => (
+                  <div key={colorEn} style={{ marginBottom: '16px', background: 'var(--beige)', borderRadius: '10px', padding: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                      <div style={{ width: 18, height: 18, borderRadius: '50%', background: info.hex, border: '1px solid #ccc', flexShrink: 0 }} />
+                      <span style={{ fontWeight: 600, fontSize: '14px' }}>{info.color_fr}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: 'auto' }}>Cliquez sur une taille pour l'activer</span>
                     </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {group.sizes.map((s, si) => (
-                        <div key={s.size}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {SIZES.map(size => (
+                        <div key={size}>
                           <button type="button"
-                            className={`size-btn ${s.enabled ? 'active' : ''}`}
-                            style={{ width: '100%', textAlign: 'left', marginBottom: s.enabled ? '6px' : '0' }}
-                            onClick={() => toggleSize(gi, si)}
+                            className={`size-btn ${info.sizes[size]?.enabled ? 'active' : ''}`}
+                            style={{ width: '100%', textAlign: 'left' }}
+                            onClick={() => toggleSize(colorEn, size)}
                           >
-                            {s.size}
+                            {size}
                           </button>
-                          {s.enabled && (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingLeft: '8px' }}>
-                              <div>
-                                <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Prix (DZD)</label>
-                                <input
-                                  type="text" inputMode="numeric" pattern="[0-9]*"
-                                  placeholder="Ex: 2500"
-                                  value={s.price_dzd}
-                                  onChange={e => updateSize(gi, si, 'price_dzd', e.target.value)}
-                                  style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Stock</label>
-                                <input
-                                  type="text" inputMode="numeric" pattern="[0-9]*"
-                                  placeholder="Ex: 10"
-                                  value={s.stock_quantity}
-                                  onChange={e => updateSize(gi, si, 'stock_quantity', e.target.value)}
-                                  style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px' }}
-                                />
-                              </div>
+                          {info.sizes[size]?.enabled && (
+                            <div style={{ paddingLeft: '8px', marginTop: '4px' }}>
+                              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Quantité en stock</label>
+                              <input
+                                type="text" inputMode="numeric" pattern="[0-9]*"
+                                placeholder="Ex: 10"
+                                value={info.sizes[size].stock}
+                                onChange={e => updateStock(colorEn, size, e.target.value)}
+                                style={{ width: '140px', padding: '7px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px', marginLeft: '8px' }}
+                              />
                             </div>
                           )}
                         </div>
@@ -670,12 +664,6 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
-
-                <button type="button" onClick={addColorGroup}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', border: '2px dashed var(--border)', borderRadius: '8px', background: 'transparent', color: 'var(--gold)', cursor: 'pointer', width: '100%', justifyContent: 'center', fontWeight: 500 }}
-                >
-                  <Plus size={16} /> Ajouter une couleur
-                </button>
               </div>
 
               <div className="modal-footer">

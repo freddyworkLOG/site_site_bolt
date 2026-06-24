@@ -33,6 +33,7 @@ const [loading, setLoading] = useState(true)
     last_name: '',
     customer_phone: '',
     customer_phone_2: '',
+    customer_height: '',
     wilaya: '',
     commune: '',
     address: '',
@@ -103,6 +104,10 @@ const [loading, setLoading] = useState(true)
       newErrors.customer_phone_2 = t('checkout.invalidPhone')
     }
 
+    if (!formData.customer_height.trim()) {
+      newErrors.customer_height = t('checkout.required')
+    }
+
     if (!formData.wilaya) {
       newErrors.wilaya = t('checkout.required')
     }
@@ -140,6 +145,7 @@ const [loading, setLoading] = useState(true)
         commune: formData.commune.trim(),
         address: formData.address.trim(),
         delivery_method: formData.delivery_method,
+        customer_height: formData.customer_height.trim() || null,
         items: cartItems.map(item => ({
           variantId: item.variantId,
           productId: item.productId,
@@ -293,6 +299,23 @@ const [loading, setLoading] = useState(true)
                 <span className="hint">{t('checkout.phone2Hint')}</span>
                 {errors.customer_phone_2 && (
                   <span className="error-message">{errors.customer_phone_2}</span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="customer_height">Votre taille (cm) *</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  id="customer_height"
+                  value={formData.customer_height}
+                  onChange={(e) => handleChange('customer_height', e.target.value)}
+                  placeholder="Ex: 165"
+                  className={errors.customer_height ? 'error' : ''}
+                />
+                {errors.customer_height && (
+                  <span className="error-message">{errors.customer_height}</span>
                 )}
               </div>
             </section>
