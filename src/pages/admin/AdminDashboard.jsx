@@ -464,7 +464,7 @@ export default function AdminDashboard() {
                 transition: 'all 0.2s ease',
               }}
             >
-              {tab === 'sales' ? 'Ventes' : t(`admin.${tab}`)}
+              {t(`admin.${tab}`)}
             </button>
           ))}
         </div>
@@ -546,7 +546,7 @@ export default function AdminDashboard() {
                 <table>
                   <thead>
                     <tr>
-                      <th>Produit</th><th>Taille</th><th>Couleur</th><th>Qté</th><th>Prix unitaire</th><th>Total</th><th>Date</th><th></th>
+                      <th>{t('admin.salesPage.product')}</th><th>{t('admin.size')}</th><th>{t('admin.color')}</th><th>{t('common.quantity')}</th><th>{t('admin.salesPage.unitPrice')}</th><th>{t('common.total')}</th><th>Date</th><th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -834,7 +834,7 @@ export default function AdminDashboard() {
             </div>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="form-group">
-                <label>Produit *</label>
+                <label>{t('admin.salesPage.product')} *</label>
                 <select value={saleForm.product_id} onChange={e => setSaleForm({ ...saleForm, product_id: e.target.value, variant_id: '', unit_price: '' })}>
                   <option value="">{t('admin.salesPage.selectProduct')}</option>
                   {products.map(p => <option key={p.id} value={p.id}>{p.name_fr || p.name_en}</option>)}
@@ -843,7 +843,7 @@ export default function AdminDashboard() {
 
               {saleForm.product_id && (
                 <div className="form-group">
-                  <label>Variante (taille / couleur) *</label>
+                  <label>{t('admin.salesPage.variant')} *</label>
                   <select value={saleForm.variant_id} onChange={e => {
                     const variant = products.find(p => p.id === saleForm.product_id)?.product_variants?.find(v => v.id === e.target.value)
                     setSaleForm({ ...saleForm, variant_id: e.target.value, unit_price: variant?.price_dzd?.toString() || '' })
@@ -858,12 +858,12 @@ export default function AdminDashboard() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label>Quantité *</label>
+                  <label>{t('admin.salesPage.quantity')} *</label>
                   <input type="text" inputMode="numeric" value={saleForm.quantity}
                     onChange={e => setSaleForm({ ...saleForm, quantity: e.target.value })} placeholder="1" />
                 </div>
                 <div className="form-group">
-                  <label>Prix unitaire (DZD) *</label>
+                  <label>{t('admin.salesPage.unitPrice')} *</label>
                   <input type="text" inputMode="numeric" value={saleForm.unit_price}
                     onChange={e => setSaleForm({ ...saleForm, unit_price: e.target.value })} placeholder="Ex: 2500" />
                 </div>
@@ -876,14 +876,14 @@ export default function AdminDashboard() {
               )}
 
               <div className="form-group">
-                <label>Notes (optionnel)</label>
+                <label>{t('admin.salesPage.notes')}</label>
                 <input type="text" value={saleForm.notes}
-                  onChange={e => setSaleForm({ ...saleForm, notes: e.target.value })} placeholder="Ex: cliente régulière, remise..." />
+                  onChange={e => setSaleForm({ ...saleForm, notes: e.target.value })} placeholder={t('admin.salesPage.notesPlaceholder')} />
               </div>
 
               <button onClick={handleManualSale}
                 style={{ width: '100%', padding: '14px', background: 'var(--gold)', color: 'var(--white)', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '16px', cursor: 'pointer' }}>
-                Enregistrer la vente
+                {t('admin.salesPage.submit')}
               </button>
             </div>
           </div>
