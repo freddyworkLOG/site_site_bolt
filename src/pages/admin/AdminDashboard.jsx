@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
-const TABS = ['dashboard', 'products', 'orders']
+const TABS = ['dashboard', 'products', 'orders', 'sales']
 const CATEGORIES = ['abayas', 'jilbabs', 'kimonos', 'ensembles', 'accessories']
 const SIZES = ['S (36)', 'Taille 1 (38-40)', 'Taille 2 (42-44)', 'Taille 3 (Sur commande)']
 const STATUS_OPTIONS = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
@@ -48,6 +48,13 @@ export default function AdminDashboard() {
 
   // Orders
   const [orders, setOrders] = useState([])
+  // Manual sales
+  const [showSaleModal, setShowSaleModal] = useState(false)
+  const [saleForm, setSaleForm] = useState({ product_id: '', variant_id: '', quantity: 1, unit_price: '', notes: '' })
+  const [manualSales, setManualSales] = useState([])
+  const [manualSalesLoading, setManualSalesLoading] = useState(false)
+
+  
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -85,6 +92,7 @@ export default function AdminDashboard() {
     if (activeTab === 'dashboard') loadDashboard()
     else if (activeTab === 'products') loadProducts()
     else if (activeTab === 'orders') loadOrders()
+    else if (activeTab === 'sales') { loadManualSales(); loadProducts() }
   }, [activeTab, loading, user])
 
   // Load dashboard stats
@@ -299,6 +307,79 @@ export default function AdminDashboard() {
     loadProducts()
   }
 
+  // Load manual sales
+  const loadManualSales = async () => {
+    setManualSalesLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('manual_sales')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100)
+      if (!error && data) setManualSales(data)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setManualSalesLoading(false)
+    }
+  }
+
+  // Submit manual sale
+  const handleManualSale = async () => {
+    if (!saleForm.product_id || !saleForm.variant_id || !saleForm.quantity || !saleForm.unit_price) {
+      alert(t('admin.salesPage.required'))
+      return
+    }
+    try {
+      const selectedProduct = products.find(p => p.id === saleForm.product_id)
+      const selectedVariant = selectedProduct?.product_variants?.find(v => v.id === saleForm.variant_id)
+      const qty = parseInt(saleForm.quantity)
+      const price = parseFloat(saleForm.unit_price)
+      const { error: saleError } = await supabase.from('manual_sales').insert({
+        product_id: saleForm.product_id,
+        variant_id: saleForm.variant_id,
+        product_name: selectedProduct?.name_fr || selectedProduct?.name_en || '',
+        size: selectedVariant?.size || '',
+        color: selectedVariant?.color_fr || selectedVariant?.color_en || '',
+        quantity: qty,
+        unit_price: price,
+        total_price: qty * price,
+        notes: saleForm.notes.trim() || null
+      })
+      if (saleError) throw saleError
+      const { error: stockError } = await supabase
+        .from('product_variants')
+        .update({ stock_quantity: Math.max(0, (selectedVariant?.stock_quantity || 0) - qty) })
+        .eq('id', saleForm.variant_id)
+      if (stockError) throw stockError
+      setShowSaleModal(false)
+      setSaleForm({ product_id: '', variant_id: '', quantity: 1, unit_price: '', notes: '' })
+      loadManualSales()
+      loadProducts()
+      alert(t('admin.salesPage.success'))
+    } catch (err) {
+      alert('Erreur: ' + err.message)
+    }
+  }
+
+  //Cancel ManualSale
+  const cancelManualSale = async (saleId, variantId, quantity) => {
+    if (!window.confirm(t('admin.salesPage.cancelConfirm'))) return
+    try {
+      const { data: variant } = await supabase
+        .from('product_variants').select('stock_quantity').eq('id', variantId).single()
+      await supabase
+        .from('product_variants')
+        .update({ stock_quantity: (variant?.stock_quantity || 0) + quantity })
+        .eq('id', variantId)
+      await supabase.from('manual_sales').delete().eq('id', saleId)
+      loadManualSales()
+      loadProducts()
+    } catch (err) {
+      alert('Erreur: ' + err.message)
+    }
+  }
+
   // Update order status
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
@@ -307,9 +388,7 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Error updating order:', err)
     }
-  }
-
-  // Filter orders
+  }  // Filter orders
   const filteredOrders = orders.filter(order =>
     !searchQuery ||
     order.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -347,24 +426,21 @@ export default function AdminDashboard() {
           >
             Be Princess Collection — Admin
           </h1>
-          <button
-            onClick={handleSignOut}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 16px',
-              background: 'none',
-              border: '1px solid var(--border)',
-              borderRadius: '8px',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontSize: '14px',
-            }}
-          >
-            <LogOut size={18} />
-            {t('admin.signOut')}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {['fr', 'ar', 'en'].map(lang => (
+              <button key={lang} onClick={() => i18n.changeLanguage(lang)}
+                style={{ padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', background: i18n.language === lang ? 'var(--gold)' : 'transparent', color: i18n.language === lang ? 'var(--white)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '13px', fontWeight: 500 }}>
+                {lang.toUpperCase()}
+              </button>
+            ))}
+            <button
+              onClick={handleSignOut}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: 'none', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px' }}
+            >
+              <LogOut size={18} />
+              {t('admin.signOut')}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -388,7 +464,7 @@ export default function AdminDashboard() {
                 transition: 'all 0.2s ease',
               }}
             >
-              {t(`admin.${tab}`)}
+              {tab === 'sales' ? 'Ventes' : t(`admin.${tab}`)}
             </button>
           ))}
         </div>
@@ -422,6 +498,79 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+      {/* Sales */}
+        {activeTab === 'sales' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 600 }}>{t('admin.salesPage.title')}</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '4px' }}>{t('admin.salesPage.subtitle')}</p>
+              </div>
+              <button onClick={() => { loadProducts(); setShowSaleModal(true) }}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', background: 'var(--gold)', color: 'var(--white)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
+                <Plus size={18} /> {t('admin.salesPage.newSale')}
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <span className="stat-value">{manualSales.length}</span>
+                  <span className="stat-label">{t('admin.salesPage.registered')}</span>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <span className="stat-value">{manualSales.reduce((s, v) => s + (v.quantity || 0), 0)}</span>
+                  <span className="stat-label">{t('admin.salesPage.itemsSold')}</span>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <span className="stat-value">{manualSales.reduce((s, v) => s + (v.total_price || 0), 0).toLocaleString()} DZD</span>
+                  <span className="stat-label">{t('admin.salesPage.revenue')}</span>
+                </div>
+              </div>
+            </div>
+
+            {manualSalesLoading ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}><Loader2 className="spin" size={24} /></div>
+            ) : manualSales.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
+                <ShoppingBag size={40} style={{ marginBottom: '12px', opacity: 0.3 }} />
+                <p>{t('admin.salesPage.empty')}</p>
+              </div>
+            ) : (
+              <div className="products-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Produit</th><th>Taille</th><th>Couleur</th><th>Qté</th><th>Prix unitaire</th><th>Total</th><th>Date</th><th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {manualSales.map(sale => (
+                      <tr key={sale.id}>
+                        <td><strong>{sale.product_name}</strong>{sale.notes && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{sale.notes}</div>}</td>
+                        <td>{sale.size || '—'}</td>
+                        <td>{sale.color || '—'}</td>
+                        <td>{sale.quantity}</td>
+                        <td>{sale.unit_price?.toLocaleString()} DZD</td>
+                        <td><strong>{sale.total_price?.toLocaleString()} DZD</strong></td>
+                        <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(sale.created_at).toLocaleDateString('fr-FR')}</td>
+                        <td>
+                          <button onClick={() => cancelManualSale(sale.id, sale.variant_id, sale.quantity)} className="icon-btn danger" title="Annuler">
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>)}
 
         {/* Products */}
         {activeTab === 'products' && (
@@ -497,7 +646,7 @@ export default function AdminDashboard() {
             )}
           </div>
         )}
-
+        
         {/* Orders */}
         {activeTab === 'orders' && (
           <div>
@@ -615,7 +764,7 @@ export default function AdminDashboard() {
 
               <div className="variants-section">
                 <h4 style={{ marginBottom: '10px', fontWeight: 600, fontSize: '14px' }}>Couleurs disponibles</h4>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>Cliquez pour sélectionner</p>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>Cliquez pour {t('admin.salesPage.selectVariant')}</p>
                 <div className="color-swatches" style={{ marginBottom: '20px' }}>
                   {COLOR_PALETTE.map(c => (
                     <div key={c.hex} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
@@ -675,6 +824,71 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* Manual Sale Modal */}
+      {showSaleModal && (
+        <div className="modal-overlay" onClick={() => setShowSaleModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3>{t('admin.salesPage.modalTitle')}</h3>
+              <button onClick={() => setShowSaleModal(false)} className="icon-btn"><X size={20} /></button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="form-group">
+                <label>Produit *</label>
+                <select value={saleForm.product_id} onChange={e => setSaleForm({ ...saleForm, product_id: e.target.value, variant_id: '', unit_price: '' })}>
+                  <option value="">{t('admin.salesPage.selectProduct')}</option>
+                  {products.map(p => <option key={p.id} value={p.id}>{p.name_fr || p.name_en}</option>)}
+                </select>
+              </div>
+
+              {saleForm.product_id && (
+                <div className="form-group">
+                  <label>Variante (taille / couleur) *</label>
+                  <select value={saleForm.variant_id} onChange={e => {
+                    const variant = products.find(p => p.id === saleForm.product_id)?.product_variants?.find(v => v.id === e.target.value)
+                    setSaleForm({ ...saleForm, variant_id: e.target.value, unit_price: variant?.price_dzd?.toString() || '' })
+                  }}>
+                    <option value="">{t('admin.salesPage.selectVariant')}</option>
+                    {products.find(p => p.id === saleForm.product_id)?.product_variants?.map(v => (
+                      <option key={v.id} value={v.id}>{v.size} — {v.color_fr || v.color_en} (stock: {v.stock_quantity})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label>Quantité *</label>
+                  <input type="text" inputMode="numeric" value={saleForm.quantity}
+                    onChange={e => setSaleForm({ ...saleForm, quantity: e.target.value })} placeholder="1" />
+                </div>
+                <div className="form-group">
+                  <label>Prix unitaire (DZD) *</label>
+                  <input type="text" inputMode="numeric" value={saleForm.unit_price}
+                    onChange={e => setSaleForm({ ...saleForm, unit_price: e.target.value })} placeholder="Ex: 2500" />
+                </div>
+              </div>
+
+              {saleForm.quantity && saleForm.unit_price && (
+                <div style={{ padding: '12px', background: 'var(--beige)', borderRadius: '8px', textAlign: 'center', fontWeight: 600 }}>
+                  Total: {(parseInt(saleForm.quantity) * parseFloat(saleForm.unit_price) || 0).toLocaleString()} DZD
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>Notes (optionnel)</label>
+                <input type="text" value={saleForm.notes}
+                  onChange={e => setSaleForm({ ...saleForm, notes: e.target.value })} placeholder="Ex: cliente régulière, remise..." />
+              </div>
+
+              <button onClick={handleManualSale}
+                style={{ width: '100%', padding: '14px', background: 'var(--gold)', color: 'var(--white)', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '16px', cursor: 'pointer' }}>
+                Enregistrer la vente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Order Detail Modal */}
       {selectedOrder && (
         <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>

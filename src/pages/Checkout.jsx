@@ -34,6 +34,7 @@ const [loading, setLoading] = useState(true)
     customer_phone: '',
     customer_phone_2: '',
     customer_height: '',
+    delivery_type: 'home',
     wilaya: '',
     commune: '',
     address: '',
@@ -116,7 +117,7 @@ const [loading, setLoading] = useState(true)
       newErrors.commune = t('checkout.required')
     }
 
-    if (!formData.address.trim()) {
+    if (formData.delivery_type === 'home' && !formData.address.trim()) {
       newErrors.address = t('checkout.required')
     }
 
@@ -143,7 +144,8 @@ const [loading, setLoading] = useState(true)
         customer_phone_2: formData.customer_phone_2.trim() ? formData.customer_phone_2.replace(/\s/g, '') : null,
         wilaya: formData.wilaya,
         commune: formData.commune.trim(),
-        address: formData.address.trim(),
+        address: formData.delivery_type === 'home' ? formData.address.trim() : null,
+        delivery_type: formData.delivery_type,
         delivery_method: formData.delivery_method,
         customer_height: formData.customer_height.trim() || null,
         items: cartItems.map(item => ({
@@ -327,6 +329,34 @@ const [loading, setLoading] = useState(true)
                 {t('checkout.delivery')}
               </h2>
 
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label>Type de livraison *</label>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                  <label className={`radio-option ${formData.delivery_type === 'agency' ? 'selected' : ''}`} style={{ flex: 1, cursor: 'pointer' }}>
+                    <input type="radio" name="delivery_type" value="agency"
+                      checked={formData.delivery_type === 'agency'}
+                      onChange={() => handleChange('delivery_type', 'agency')}
+                      style={{ display: 'none' }}
+                    />
+                    <div className="radio-content" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                      <strong style={{ fontSize: '14px' }}>📦 Retrait en agence</strong>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Vous retirez chez Yalidine / ZR</span>
+                    </div>
+                  </label>
+                  <label className={`radio-option ${formData.delivery_type === 'home' ? 'selected' : ''}`} style={{ flex: 1, cursor: 'pointer' }}>
+                    <input type="radio" name="delivery_type" value="home"
+                      checked={formData.delivery_type === 'home'}
+                      onChange={() => handleChange('delivery_type', 'home')}
+                      style={{ display: 'none' }}
+                    />
+                    <div className="radio-content" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                      <strong style={{ fontSize: '14px' }}>🚪 Livraison à domicile</strong>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Livré directement chez vous</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="wilaya">{t('checkout.wilaya')} *</label>
@@ -362,20 +392,22 @@ const [loading, setLoading] = useState(true)
                 </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="address">{t('checkout.address')} *</label>
-                <textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleChange('address', e.target.value)}
-                  placeholder={t('checkout.addressHint')}
-                  rows={3}
-                  className={errors.address ? 'error' : ''}
-                />
-                {errors.address && (
-                  <span className="error-message">{errors.address}</span>
-                )}
-              </div>
+              {formData.delivery_type === 'home' && (
+                <div className="form-group">
+                  <label htmlFor="address">{t('checkout.address')} *</label>
+                  <textarea
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => handleChange('address', e.target.value)}
+                    placeholder={t('checkout.addressHint')}
+                    rows={3}
+                    className={errors.address ? 'error' : ''}
+                  />
+                  {errors.address && (
+                    <span className="error-message">{errors.address}</span>
+                  )}
+                </div>
+              )}
             </section>
 
             {/* Delivery method */}

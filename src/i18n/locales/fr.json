@@ -165,6 +165,28 @@
     "dashboard": "Tableau de bord",
     "products": "Produits",
     "orders": "Commandes",
+    "sales": "Ventes",
+"salesPage": {
+  "title": "Ventes en boutique",
+  "subtitle": "Ventes faites en dehors du site",
+  "newSale": "Nouvelle vente",
+  "registered": "Ventes enregistrées",
+  "itemsSold": "Articles vendus",
+  "revenue": "Chiffre d'affaires boutique",
+  "empty": "Aucune vente enregistrée pour l'instant",
+  "modalTitle": "Nouvelle vente en boutique",
+  "selectProduct": "Sélectionner un produit",
+  "variant": "Variante (taille / couleur)",
+  "selectVariant": "Sélectionner",
+  "quantity": "Quantité",
+  "unitPrice": "Prix unitaire (DZD)",
+  "notes": "Notes (optionnel)",
+  "notesPlaceholder": "Ex: cliente régulière, remise...",
+  "submit": "Enregistrer la vente",
+  "required": "Remplissez tous les champs obligatoires",
+  "success": "Vente enregistrée ✓",
+  "cancelConfirm": "Annuler cette vente et remettre le stock ?"
+},
     "customers": "Clients",
     "inventory": "Inventaire",
     "addProduct": "Ajouter un produit",
@@ -208,3 +230,4 @@
     "recentOrders": "Commandes recentes"
   }
 }
+
