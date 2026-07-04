@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import {
   Package, ShoppingBag, Users, AlertCircle, LogOut, Plus, Edit2, Trash2,
-  X, Check, Loader2, ChevronDown, Eye, FileText, Truck, Search
+  X, Check, Loader2, ChevronDown, Eye, FileText, Truck, Search, Upload
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
@@ -12,20 +12,72 @@ const CATEGORIES = ['abayas', 'jilbabs', 'kimonos', 'ensembles', 'accessories']
 const SIZES = ['S (36)', 'Taille 1 (38-40)', 'Taille 2 (42-44)', 'Taille 3 (Sur commande)']
 const STATUS_OPTIONS = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
 
-const COLOR_PALETTE = [
+const MAIN_PALETTE = [
   { hex: '#1a1a1a', color_en: 'Black', color_fr: 'Noir', color_ar: 'أسود' },
   { hex: '#ffffff', color_en: 'White', color_fr: 'Blanc', color_ar: 'أبيض' },
   { hex: '#E3D3B5', color_en: 'Beige', color_fr: 'Beige', color_ar: 'بيج' },
-  { hex: '#F5EFE0', color_en: 'Cream', color_fr: 'Crème', color_ar: 'كريمي' },
+  { hex: '#F5EFE0', color_en: 'Cream', color_fr: 'Crème', color_ar: 'كريم' },
   { hex: '#6B4226', color_en: 'Brown', color_fr: 'Marron', color_ar: 'بني' },
-  { hex: '#C19A6B', color_en: 'Camel', color_fr: 'Camel', color_ar: 'جملي' },
+  { hex: '#C19A6B', color_en: 'Camel', color_fr: 'Camel', color_ar: 'كامل' },
   { hex: '#8C8C8C', color_en: 'Grey', color_fr: 'Gris', color_ar: 'رمادي' },
   { hex: '#36454F', color_en: 'Charcoal', color_fr: 'Anthracite', color_ar: 'فحمي' },
-  { hex: '#1B2A4A', color_en: 'Navy', color_fr: 'Bleu Marine', color_ar: 'كحلي' },
+  { hex: '#1B2A4A', color_en: 'Navy', color_fr: 'Marine', color_ar: 'كحلي' },
   { hex: '#6B6E3A', color_en: 'Olive', color_fr: 'Olive', color_ar: 'زيتي' },
-  { hex: '#5E2129', color_en: 'Burgundy', color_fr: 'Bordeaux', color_ar: 'خمري' },
-  { hex: '#C9A0A6', color_en: 'Dusty Rose', color_fr: 'Rose Poudré', color_ar: 'وردي ترابي' },
+  { hex: '#5E2129', color_en: 'Burgundy', color_fr: 'Bordeaux', color_ar: 'عنابي' },
+  { hex: '#C9A0A6', color_en: 'Dusty Rose', color_fr: 'Rose poudré', color_ar: 'وردي' },
 ]
+
+const EXTENDED_PALETTE = [
+  { hex: '#FFFFF0', color_en: 'Ivory', color_fr: 'Ivoire', color_ar: 'عاجي' },
+  { hex: '#F8F4E9', color_en: 'Off White', color_fr: 'Blanc cassé', color_ar: 'أبيض مكسور' },
+  { hex: '#D3D3D3', color_en: 'Light Grey', color_fr: 'Gris clair', color_ar: 'رمادي فاتح' },
+  { hex: '#696969', color_en: 'Dark Grey', color_fr: 'Gris foncé', color_ar: 'رمادي غامق' },
+  { hex: '#8B7D7B', color_en: 'Taupe', color_fr: 'Taupe', color_ar: 'تاوب' },
+  { hex: '#C3B091', color_en: 'Khaki', color_fr: 'Kaki', color_ar: 'كاكي' },
+  { hex: '#4169E1', color_en: 'Royal Blue', color_fr: 'Bleu royal', color_ar: 'أزرق ملكي' },
+  { hex: '#87CEEB', color_en: 'Sky Blue', color_fr: 'Bleu ciel', color_ar: 'أزرق سماوي' },
+  { hex: '#40E0D0', color_en: 'Turquoise', color_fr: 'Turquoise', color_ar: 'تركواز' },
+  { hex: '#98FF98', color_en: 'Mint', color_fr: 'Menthe', color_ar: 'نعناعي' },
+  { hex: '#9DC183', color_en: 'Sage', color_fr: 'Sauge', color_ar: 'أخضر مريمية' },
+  { hex: '#228B22', color_en: 'Forest Green', color_fr: 'Vert forêt', color_ar: 'أخضر غابة' },
+  { hex: '#50C878', color_en: 'Emerald', color_fr: 'Émeraude', color_ar: 'زمردي' },
+  { hex: '#FFB6C1', color_en: 'Blush', color_fr: 'Blush', color_ar: 'وردي خفيف' },
+  { hex: '#FF69B4', color_en: 'Hot Pink', color_fr: 'Rose vif', color_ar: 'وردي فاقع' },
+  { hex: '#C7158A', color_en: 'Fuchsia', color_fr: 'Fuchsia', color_ar: 'فوشيا' },
+  { hex: '#FF7F50', color_en: 'Coral', color_fr: 'Corail', color_ar: 'مرجاني' },
+  { hex: '#FA8072', color_en: 'Salmon', color_fr: 'Saumon', color_ar: 'سلموني' },
+  { hex: '#CC0000', color_en: 'Red', color_fr: 'Rouge', color_ar: 'أحمر' },
+  { hex: '#CB4154', color_en: 'Brick', color_fr: 'Brique', color_ar: 'قرميدي' },
+  { hex: '#C2B280', color_en: 'Sand', color_fr: 'Sable', color_ar: 'رملي' },
+  { hex: '#FFDB58', color_en: 'Mustard', color_fr: 'Moutarde', color_ar: 'خردلي' },
+  { hex: '#FFD700', color_en: 'Gold', color_fr: 'Doré', color_ar: 'ذهبي' },
+  { hex: '#B87333', color_en: 'Copper', color_fr: 'Cuivre', color_ar: 'نحاسي' },
+  { hex: '#E2725B', color_en: 'Terracotta', color_fr: 'Terracotta', color_ar: 'ترا كوتا' },
+  { hex: '#3D1C02', color_en: 'Chocolate', color_fr: 'Chocolat', color_ar: 'شوكولاتة' },
+  { hex: '#6F4E37', color_en: 'Coffee', color_fr: 'Café', color_ar: 'بني قهوة' },
+  { hex: '#B7410E', color_en: 'Rust', color_fr: 'Rouille', color_ar: 'صدئي' },
+  { hex: '#E6E6FA', color_en: 'Lavender', color_fr: 'Lavande', color_ar: 'خزامى' },
+  { hex: '#C8A2C8', color_en: 'Lilac', color_fr: 'Lilas', color_ar: 'ليلكي' },
+  { hex: '#800080', color_en: 'Purple', color_fr: 'Violet', color_ar: 'بنفسجي' },
+  { hex: '#8E4585', color_en: 'Plum', color_fr: 'Prune', color_ar: 'برقوقي' },
+  { hex: '#B784A7', color_en: 'Mauve', color_fr: 'Mauve', color_ar: 'موف' },
+  { hex: '#008080', color_en: 'Teal', color_fr: 'Sarcelle', color_ar: 'تيل' },
+  { hex: '#003366', color_en: 'Petrol', color_fr: 'Pétrole', color_ar: 'بترولي' },
+  { hex: '#4B0082', color_en: 'Indigo', color_fr: 'Indigo', color_ar: 'نيلي' },
+]
+
+const COLOR_PALETTE = [...MAIN_PALETTE, ...EXTENDED_PALETTE]
+
+function getEmptyColorGroup() {
+  return {
+    hex: '',
+    color_en: '',
+    color_fr: '',
+    color_ar: '',
+    showExtended: false,
+    sizes: SIZES.map(s => ({ size: s, enabled: false, price_dzd: '', stock_quantity: '' }))
+  }
+}
 
 export default function AdminDashboard() {
   const { t, i18n } = useTranslation()
@@ -48,17 +100,17 @@ export default function AdminDashboard() {
 
   // Orders
   const [orders, setOrders] = useState([])
-  // Manual sales
-  const [showSaleModal, setShowSaleModal] = useState(false)
-  const [saleForm, setSaleForm] = useState({ product_id: '', variant_id: '', quantity: 1, unit_price: '', notes: '' })
-  const [manualSales, setManualSales] = useState([])
-  const [manualSalesLoading, setManualSalesLoading] = useState(false)
-
-  
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedOrder, setSelectedOrder] = useState(null)
+
+  // Image upload
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [showSaleModal, setShowSaleModal] = useState(false)
+  const [saleForm, setSaleForm] = useState({ product_id: '', variant_id: '', quantity: 1, unit_price: '', notes: '' })
+  const [manualSales, setManualSales] = useState([])
+  const [manualSalesLoading, setManualSalesLoading] = useState(false)
 
   // Check auth on mount
   useEffect(() => {
@@ -84,6 +136,42 @@ export default function AdminDashboard() {
 
     return () => subscription.unsubscribe()
   }, [navigate])
+
+  // Cloudinary image upload
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('upload_preset', 'products_upload')
+    formData.append('folder', 'products')
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: 'POST', body: formData }
+    )
+    const data = await res.json()
+    if (data.error) throw new Error(data.error.message)
+    return data.secure_url
+  }
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files)
+    if (!files.length) return
+    const remaining = 6 - (productForm.images?.length || 0)
+    const toUpload = files.slice(0, remaining)
+    setUploadingImages(true)
+    try {
+      const urls = await Promise.all(toUpload.map(f => uploadToCloudinary(f)))
+      setProductForm(prev => ({ ...prev, images: [...(prev.images || []), ...urls] }))
+    } catch (err) {
+      alert('Upload failed: ' + err.message)
+    } finally {
+      setUploadingImages(false)
+    }
+  }
+
+  const removeImage = (index) => {
+    setProductForm(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
+  }
 
   // Load data when tab changes
   useEffect(() => {
@@ -173,48 +261,84 @@ export default function AdminDashboard() {
   // Product CRUD
   function getEmptyProduct() {
     return {
-      name: '',
-      description: '',
-      price_dzd: '',
+      name_en: '', name_fr: '', name_ar: '',
+      description_en: '', description_fr: '', description_ar: '',
       category: 'abayas',
       images: [],
       is_active: true,
-      selectedColors: {},
-    }
+     price: '',
+    colorGroups: []
   }
+}
 
-  // selectedColors shape: { color_en: { hex, color_fr, color_ar, sizes: { 'S (36)': { enabled, stock } } } }
+  const addColorGroup = () =>
+    setProductForm(prev => ({ ...prev, colorGroups: [...prev.colorGroups, getEmptyColorGroup()] }))
+
+  const removeColorGroup = (gi) =>
+    setProductForm(prev => ({ ...prev, colorGroups: prev.colorGroups.filter((_, i) => i !== gi) }))
+
+  const selectColor = (gi, color) =>
+    setProductForm(prev => {
+      const groups = prev.colorGroups.map((g, i) =>
+        i !== gi ? g : { ...g, hex: color.hex, color_en: color.color_en, color_fr: color.color_fr, color_ar: color.color_ar, showExtended: false }
+      )
+      return { ...prev, colorGroups: groups }
+    })
+
+  const toggleExtended = (gi) =>
+    setProductForm(prev => {
+      const groups = prev.colorGroups.map((g, i) =>
+        i !== gi ? g : { ...g, showExtended: !g.showExtended }
+      )
+      return { ...prev, colorGroups: groups }
+    })
+
+  const toggleSize = (gi, si) =>
+    setProductForm(prev => {
+      const groups = prev.colorGroups.map((g, i) =>
+        i !== gi ? g : {
+          ...g,
+          sizes: g.sizes.map((s, j) => j !== si ? s : { ...s, enabled: !s.enabled })
+        }
+      )
+      return { ...prev, colorGroups: groups }
+    })
+
+  const updateSize = (gi, si, field, value) =>
+    setProductForm(prev => {
+      const groups = prev.colorGroups.map((g, i) =>
+        i !== gi ? g : {
+          ...g,
+          sizes: g.sizes.map((s, j) => j !== si ? s : { ...s, [field]: value })
+        }
+      )
+      return { ...prev, colorGroups: groups }
+    })
 
   const openProductModal = (product = null) => {
     if (product) {
-      const variants = product.product_variants || []
-      const firstPrice = variants[0]?.price_dzd?.toString() || ''
-      const selectedColors = {}
-      for (const v of variants) {
-        if (!selectedColors[v.color_en]) {
+      const groupMap = {}
+      for (const v of (product.product_variants || [])) {
+        if (!groupMap[v.color_en]) {
           const palette = COLOR_PALETTE.find(c => c.color_en === v.color_en)
-          selectedColors[v.color_en] = {
+          groupMap[v.color_en] = {
             hex: palette?.hex || '#cccccc',
+            color_en: v.color_en,
             color_fr: v.color_fr,
             color_ar: v.color_ar,
-            sizes: Object.fromEntries(SIZES.map(s => [s, { enabled: false, stock: '' }]))
+            showExtended: false,
+            sizes: SIZES.map(s => ({ size: s, enabled: false, price_dzd: '', stock_quantity: '' }))
           }
         }
-        if (selectedColors[v.color_en].sizes[v.size]) {
-          selectedColors[v.color_en].sizes[v.size].enabled = true
-          selectedColors[v.color_en].sizes[v.size].stock = v.stock_quantity?.toString() || ''
+        const sizeIdx = groupMap[v.color_en].sizes.findIndex(s => s.size === v.size)
+        if (sizeIdx >= 0) {
+          groupMap[v.color_en].sizes[sizeIdx].enabled = true
+          groupMap[v.color_en].sizes[sizeIdx].price_dzd = v.price_dzd?.toString() || ''
+          groupMap[v.color_en].sizes[sizeIdx].stock_quantity = v.stock_quantity?.toString() || ''
         }
       }
-      setProductForm({
-        name: product.name_en || '',
-        description: product.description_en || '',
-        price_dzd: firstPrice,
-        category: product.category,
-        images: product.images || [],
-        is_active: product.is_active,
-        selectedColors,
-        _id: product.id
-      })
+      const existingPrice = product.product_variants?.[0]?.price_dzd?.toString() || ''
+    setProductForm({ ...product, price: existingPrice, colorGroups: Object.values(groupMap) })
       setEditingProduct(product)
     } else {
       setProductForm(getEmptyProduct())
@@ -229,51 +353,33 @@ export default function AdminDashboard() {
     setProductForm(getEmptyProduct())
   }
 
-  const toggleColor = (c) => setProductForm(prev => {
-    const sc = { ...prev.selectedColors }
-    if (sc[c.color_en]) {
-      delete sc[c.color_en]
-    } else {
-      sc[c.color_en] = {
-        hex: c.hex, color_fr: c.color_fr, color_ar: c.color_ar,
-        sizes: Object.fromEntries(SIZES.map(s => [s, { enabled: false, stock: '' }]))
-      }
-    }
-    return { ...prev, selectedColors: sc }
-  })
-
-  const toggleSize = (colorEn, size) => setProductForm(prev => {
-    const sc = { ...prev.selectedColors }
-    sc[colorEn] = { ...sc[colorEn], sizes: { ...sc[colorEn].sizes, [size]: { ...sc[colorEn].sizes[size], enabled: !sc[colorEn].sizes[size].enabled } } }
-    return { ...prev, selectedColors: sc }
-  })
-
-  const updateStock = (colorEn, size, value) => setProductForm(prev => {
-    const sc = { ...prev.selectedColors }
-    sc[colorEn] = { ...sc[colorEn], sizes: { ...sc[colorEn].sizes, [size]: { ...sc[colorEn].sizes[size], stock: value } } }
-    return { ...prev, selectedColors: sc }
-  })
-
   const handleProductSubmit = async (e) => {
     e.preventDefault()
-    const price = parseInt(productForm.price_dzd) || 0
     try {
       const productData = {
-        name_en: productForm.name, name_fr: productForm.name, name_ar: productForm.name,
-        description_en: productForm.description, description_fr: productForm.description, description_ar: productForm.description,
-        category: productForm.category, images: productForm.images, is_active: productForm.is_active,
+        name_en: productForm.name_en,
+        name_fr: productForm.name_fr,
+        name_ar: productForm.name_ar,
+        description_en: productForm.description_en,
+        description_fr: productForm.description_fr,
+        description_ar: productForm.description_ar,
+        category: productForm.category,
+        images: productForm.images,
+        is_active: productForm.is_active,
       }
 
-      const variantsFlat = Object.entries(productForm.selectedColors).flatMap(([color_en, info]) =>
-        SIZES.filter(s => info.sizes[s]?.enabled).map(s => ({
-          color_en,
-          color_fr: info.color_fr,
-          color_ar: info.color_ar,
-          size: s,
-          price_dzd: price,
-          stock_quantity: parseInt(info.sizes[s].stock) || 0,
-          is_active: true
-        }))
+      const variantsFlat = productForm.colorGroups.flatMap(group =>
+        group.sizes
+          .filter(s => s.enabled && group.color_en)
+          .map(s => ({
+            color_en: group.color_en,
+            color_fr: group.color_fr,
+            color_ar: group.color_ar,
+            size: s.size,
+            price_dzd: parseInt(productForm.price) || 0,
+            stock_quantity: parseInt(s.stock_quantity) || 0,
+            is_active: true
+          }))
       )
 
       if (editingProduct) {
@@ -294,7 +400,7 @@ export default function AdminDashboard() {
       }
 
       loadProducts()
-      closeProductModal()
+      setShowProductModal(false)
     } catch (err) {
       console.error('Error saving product:', err)
       alert('Failed to save product: ' + err.message)
@@ -307,7 +413,15 @@ export default function AdminDashboard() {
     loadProducts()
   }
 
-  // Load manual sales
+  // Update order status
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await supabase.from('orders').update({ status: newStatus }).eq('id', orderId)
+      loadOrders()
+    } catch (err) {
+      console.error('Error updating order:', err)
+    }
+  }
   const loadManualSales = async () => {
     setManualSalesLoading(true)
     try {
@@ -323,8 +437,7 @@ export default function AdminDashboard() {
       setManualSalesLoading(false)
     }
   }
-
-  // Submit manual sale
+ //offline sales
   const handleManualSale = async () => {
     if (!saleForm.product_id || !saleForm.variant_id || !saleForm.quantity || !saleForm.unit_price) {
       alert(t('admin.salesPage.required'))
@@ -362,7 +475,6 @@ export default function AdminDashboard() {
     }
   }
 
-  //Cancel ManualSale
   const cancelManualSale = async (saleId, variantId, quantity) => {
     if (!window.confirm(t('admin.salesPage.cancelConfirm'))) return
     try {
@@ -380,15 +492,7 @@ export default function AdminDashboard() {
     }
   }
 
-  // Update order status
-  const updateOrderStatus = async (orderId, newStatus) => {
-    try {
-      await supabase.from('orders').update({ status: newStatus }).eq('id', orderId)
-      loadOrders()
-    } catch (err) {
-      console.error('Error updating order:', err)
-    }
-  }  // Filter orders
+  // Filter orders
   const filteredOrders = orders.filter(order =>
     !searchQuery ||
     order.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -498,8 +602,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-
-      {/* Sales */}
+        {/* Sales */}
         {activeTab === 'sales' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -512,28 +615,11 @@ export default function AdminDashboard() {
                 <Plus size={18} /> {t('admin.salesPage.newSale')}
               </button>
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-              <div className="stat-card">
-                <div className="stat-info">
-                  <span className="stat-value">{manualSales.length}</span>
-                  <span className="stat-label">{t('admin.salesPage.registered')}</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-info">
-                  <span className="stat-value">{manualSales.reduce((s, v) => s + (v.quantity || 0), 0)}</span>
-                  <span className="stat-label">{t('admin.salesPage.itemsSold')}</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-info">
-                  <span className="stat-value">{manualSales.reduce((s, v) => s + (v.total_price || 0), 0).toLocaleString()} DZD</span>
-                  <span className="stat-label">{t('admin.salesPage.revenue')}</span>
-                </div>
-              </div>
+              <div className="stat-card"><div className="stat-info"><span className="stat-value">{manualSales.length}</span><span className="stat-label">{t('admin.salesPage.registered')}</span></div></div>
+              <div className="stat-card"><div className="stat-info"><span className="stat-value">{manualSales.reduce((s, v) => s + (v.quantity || 0), 0)}</span><span className="stat-label">{t('admin.salesPage.itemsSold')}</span></div></div>
+              <div className="stat-card"><div className="stat-info"><span className="stat-value">{manualSales.reduce((s, v) => s + (v.total_price || 0), 0).toLocaleString()} DZD</span><span className="stat-label">{t('admin.salesPage.revenue')}</span></div></div>
             </div>
-
             {manualSalesLoading ? (
               <div style={{ textAlign: 'center', padding: '40px' }}><Loader2 className="spin" size={24} /></div>
             ) : manualSales.length === 0 ? (
@@ -545,9 +631,7 @@ export default function AdminDashboard() {
               <div className="products-table">
                 <table>
                   <thead>
-                    <tr>
-                      <th>{t('admin.salesPage.product')}</th><th>{t('admin.size')}</th><th>{t('admin.color')}</th><th>{t('common.quantity')}</th><th>{t('admin.salesPage.unitPrice')}</th><th>{t('common.total')}</th><th>Date</th><th></th>
-                    </tr>
+                    <tr><th>{t('admin.salesPage.product')}</th><th>{t('admin.size')}</th><th>{t('admin.color')}</th><th>{t('common.quantity')}</th><th>{t('admin.salesPage.unitPrice')}</th><th>{t('common.total')}</th><th>Date</th><th></th></tr>
                   </thead>
                   <tbody>
                     {manualSales.map(sale => (
@@ -559,18 +643,15 @@ export default function AdminDashboard() {
                         <td>{sale.unit_price?.toLocaleString()} DZD</td>
                         <td><strong>{sale.total_price?.toLocaleString()} DZD</strong></td>
                         <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(sale.created_at).toLocaleDateString('fr-FR')}</td>
-                        <td>
-                          <button onClick={() => cancelManualSale(sale.id, sale.variant_id, sale.quantity)} className="icon-btn danger" title="Annuler">
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
+                        <td><button onClick={() => cancelManualSale(sale.id, sale.variant_id, sale.quantity)} className="icon-btn danger"><Trash2 size={16} /></button></td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
-          </div>)}
+          </div>
+        )}
 
         {/* Products */}
         {activeTab === 'products' && (
@@ -646,7 +727,7 @@ export default function AdminDashboard() {
             )}
           </div>
         )}
-        
+
         {/* Orders */}
         {activeTab === 'orders' && (
           <div>
@@ -737,8 +818,8 @@ export default function AdminDashboard() {
             </div>
             <form onSubmit={handleProductSubmit} className="modal-body">
               <div className="form-group">
-                <label>Nom du produit</label>
-                <input type="text" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} placeholder="Ex: Abaya Klassique" required />
+                <label>Nom du produit *</label>
+                <input type="text" value={productForm.name_fr} onChange={e => setProductForm({ ...productForm, name_fr: e.target.value, name_en: e.target.value, name_ar: e.target.value })} placeholder="Ex: Abaya Klassique" required />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -749,62 +830,180 @@ export default function AdminDashboard() {
                   </select>
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label>Prix (DZD)</label>
-                  <input type="text" inputMode="numeric" pattern="[0-9]*" value={productForm.price_dzd} onChange={e => setProductForm({ ...productForm, price_dzd: e.target.value })} placeholder="Ex: 2500" required />
+                  <label>Statut</label>
+                  <select value={productForm.is_active ? 'true' : 'false'} onChange={e => setProductForm({ ...productForm, is_active: e.target.value === 'true' })}>
+                    <option value="true">Actif</option>
+                    <option value="false">Inactif</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginTop: '16px' }}>
-                <label>Image URL</label>
-                <input type="url" value={productForm.images?.[0] || ''} onChange={e => setProductForm({ ...productForm, images: [e.target.value] })} placeholder="https://images.pexels.com/..." />
+              <div className="form-group">
+                <label>Prix (DZD) *</label>
+                <input
+                  type="text" inputMode="numeric" pattern="[0-9]*"
+                  placeholder="Ex: 2500"
+                  value={productForm.price}
+                  onChange={e => setProductForm({ ...productForm, price: e.target.value })}
+                  required
+                />
               </div>
-              {productForm.images?.[0] && (
-                <img src={productForm.images[0]} alt="Preview" style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '16px' }} />
-              )}
 
-              <div className="variants-section">
-                <h4 style={{ marginBottom: '10px', fontWeight: 600, fontSize: '14px' }}>Couleurs disponibles</h4>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>Cliquez pour {t('admin.salesPage.selectVariant')}</p>
-                <div className="color-swatches" style={{ marginBottom: '20px' }}>
-                  {COLOR_PALETTE.map(c => (
-                    <div key={c.hex} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                {/* Thumbnails */}
+                {productForm.images?.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                    {productForm.images.map((url, idx) => (
+                      <div key={idx} style={{ position: 'relative', width: '80px', height: '100px' }}>
+                        <img src={url} alt=""
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: idx === 0 ? '2px solid var(--gold)' : '1px solid var(--border)' }}
+                        />
+                        {idx === 0 && (
+                          <span style={{ position: 'absolute', bottom: 4, left: 0, right: 0, textAlign: 'center', fontSize: '9px', background: 'var(--gold)', color: 'white', padding: '2px 0' }}>
+                            Principale
+                          </span>
+                        )}
+                        <button type="button" onClick={() => removeImage(idx)}
+                          style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#ff4444', color: 'white', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload button */}
+                {(productForm.images?.length || 0) < 6 && (
+                  <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '20px', border: '2px dashed var(--border)', borderRadius: '10px', cursor: uploadingImages ? 'not-allowed' : 'pointer', background: uploadingImages ? 'var(--beige)' : 'transparent' }}>
+                    {uploadingImages ? (
+                      <>
+                        <Loader2 size={24} className="spin" />
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Upload en cours...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={24} style={{ color: 'var(--gold)' }} />
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                          {t('admin.uploadHint')}
+                        </span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                          {6 - (productForm.images?.length || 0)} photo(s) restante(s)
+                        </span>
+                      </>
+                    )}
+                    <input type="file" accept="image/*" multiple disabled={uploadingImages}
+                      onChange={handleImageUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                )}
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px', marginTop: '8px' }}>
+                <h4 style={{ fontWeight: 600, marginBottom: '16px', fontSize: '15px' }}>
+                  {t('admin.variants')}
+                </h4>
+
+                {productForm.colorGroups.map((group, gi) => (
+                  <div key={gi} style={{ border: '1px solid var(--border)', borderRadius: '10px', padding: '16px', marginBottom: '12px', background: 'var(--beige)' }}>
+
+                    {/* Color group header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {group.hex && (
+                          <div style={{ width: 22, height: 22, borderRadius: '50%', background: group.hex, border: '1px solid rgba(0,0,0,0.15)', flexShrink: 0 }} />
+                        )}
+                        <span style={{ fontWeight: 500, fontSize: '14px' }}>
+                          {group.color_fr || 'Sélectionner une couleur'}
+                        </span>
+                      </div>
+                      <button type="button" onClick={() => removeColorGroup(gi)} className="icon-btn danger">
+                        <X size={16} />
+                      </button>
+                    </div>
+
+                    {/* Main palette (12 colors) */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                      {MAIN_PALETTE.map(c => (
+                        <button key={c.hex} type="button"
+                          onClick={() => selectColor(gi, c)}
+                          title={c.color_fr}
+                          style={{
+                            width: 28, height: 28, borderRadius: '50%', background: c.hex, cursor: 'pointer', flexShrink: 0,
+                            border: group.color_en === c.color_en ? '3px solid var(--gold)' : '1px solid rgba(0,0,0,0.15)',
+                            outline: group.color_en === c.color_en ? '2px solid white' : 'none',
+                            outlineOffset: '-4px'
+                          }}
+                        />
+                      ))}
+
+                      {/* More colors button */}
                       <button type="button"
-                        className={`color-swatch ${productForm.selectedColors[c.color_en] ? 'active' : ''}`}
-                        style={{ backgroundColor: c.hex, border: c.hex === '#ffffff' || c.hex === '#F5EFE0' ? '1px solid #ddd' : 'none' }}
-                        title={c.color_fr}
-                        onClick={() => toggleColor(c)}
-                      />
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', maxWidth: '36px', textAlign: 'center', lineHeight: 1.2 }}>{c.color_fr}</span>
+                        onClick={() => toggleExtended(gi)}
+                        style={{
+                          width: 28, height: 28, borderRadius: '50%', background: 'white', cursor: 'pointer',
+                          border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '16px', color: 'var(--gold)', fontWeight: 700, flexShrink: 0
+                        }}
+                      >+</button>
                     </div>
-                  ))}
-                </div>
 
-                {Object.entries(productForm.selectedColors).map(([colorEn, info]) => (
-                  <div key={colorEn} style={{ marginBottom: '16px', background: 'var(--beige)', borderRadius: '10px', padding: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                      <div style={{ width: 18, height: 18, borderRadius: '50%', background: info.hex, border: '1px solid #ccc', flexShrink: 0 }} />
-                      <span style={{ fontWeight: 600, fontSize: '14px' }}>{info.color_fr}</span>
-                      <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: 'auto' }}>Cliquez sur une taille pour l'activer</span>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {SIZES.map(size => (
-                        <div key={size}>
+                    {/* Extended palette — shows when + is clicked */}
+                    {group.showExtended && (
+                      <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '8px', padding: '12px', marginBottom: '12px' }}>
+                        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>Autres couleurs</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(52px, 1fr))', gap: '8px' }}>
+                          {EXTENDED_PALETTE.map(c => (
+                            <button key={c.hex} type="button"
+                              onClick={() => selectColor(gi, c)}
+                              style={{
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                                background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                                borderRadius: '6px',
+                                outline: group.color_en === c.color_en ? '2px solid var(--gold)' : 'none'
+                              }}
+                            >
+                              <div style={{
+                                width: 28, height: 28, borderRadius: '6px', background: c.hex, flexShrink: 0,
+                                border: '1px solid rgba(0,0,0,0.1)'
+                              }} />
+                              <span style={{ fontSize: '10px', color: 'var(--text)', textAlign: 'center', lineHeight: 1.2, wordBreak: 'break-word' }}>
+                                {c.color_fr}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Size toggles */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {group.sizes.map((s, si) => (
+                        <div key={s.size}>
                           <button type="button"
-                            className={`size-btn ${info.sizes[size]?.enabled ? 'active' : ''}`}
-                            style={{ width: '100%', textAlign: 'left' }}
-                            onClick={() => toggleSize(colorEn, size)}
+                            onClick={() => toggleSize(gi, si)}
+                            style={{
+                              width: '100%', textAlign: 'left', padding: '10px 14px',
+                              border: s.enabled ? '2px solid var(--gold)' : '1px solid var(--border)',
+                              borderRadius: '8px', background: s.enabled ? 'rgba(201,160,166,0.1)' : 'white',
+                              cursor: 'pointer', fontWeight: s.enabled ? 600 : 400,
+                              color: s.enabled ? 'var(--gold)' : 'var(--text)', fontSize: '14px',
+                              marginBottom: s.enabled ? '6px' : '0',
+                              transition: 'all 0.15s ease'
+                            }}
                           >
-                            {size}
+                            {s.size}
                           </button>
-                          {info.sizes[size]?.enabled && (
-                            <div style={{ paddingLeft: '8px', marginTop: '4px' }}>
-                              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Quantité en stock</label>
+                          {s.enabled && (
+                            <div style={{ paddingLeft: '8px' }}>
+                              <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                                Stock
+                              </label>
                               <input
                                 type="text" inputMode="numeric" pattern="[0-9]*"
                                 placeholder="Ex: 10"
-                                value={info.sizes[size].stock}
-                                onChange={e => updateStock(colorEn, size, e.target.value)}
-                                style={{ width: '140px', padding: '7px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px', marginLeft: '8px' }}
+                                value={s.stock_quantity}
+                                onChange={e => updateSize(gi, si, 'stock_quantity', e.target.value)}
+                                style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
                               />
                             </div>
                           )}
@@ -813,6 +1012,17 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+
+                <button type="button" onClick={addColorGroup}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    width: '100%', padding: '12px', border: '2px dashed var(--border)',
+                    borderRadius: '8px', background: 'transparent', color: 'var(--gold)',
+                    cursor: 'pointer', fontWeight: 500, fontSize: '14px'
+                  }}
+                >
+                  <Plus size={16} /> Ajouter une couleur
+                </button>
               </div>
 
               <div className="modal-footer">
@@ -824,7 +1034,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Manual Sale Modal */}
       {showSaleModal && (
         <div className="modal-overlay" onClick={() => setShowSaleModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
@@ -840,7 +1049,6 @@ export default function AdminDashboard() {
                   {products.map(p => <option key={p.id} value={p.id}>{p.name_fr || p.name_en}</option>)}
                 </select>
               </div>
-
               {saleForm.product_id && (
                 <div className="form-group">
                   <label>{t('admin.salesPage.variant')} *</label>
@@ -855,40 +1063,33 @@ export default function AdminDashboard() {
                   </select>
                 </div>
               )}
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
                   <label>{t('admin.salesPage.quantity')} *</label>
-                  <input type="text" inputMode="numeric" value={saleForm.quantity}
-                    onChange={e => setSaleForm({ ...saleForm, quantity: e.target.value })} placeholder="1" />
+                  <input type="text" inputMode="numeric" value={saleForm.quantity} onChange={e => setSaleForm({ ...saleForm, quantity: e.target.value })} placeholder="1" />
                 </div>
                 <div className="form-group">
                   <label>{t('admin.salesPage.unitPrice')} *</label>
-                  <input type="text" inputMode="numeric" value={saleForm.unit_price}
-                    onChange={e => setSaleForm({ ...saleForm, unit_price: e.target.value })} placeholder="Ex: 2500" />
+                  <input type="text" inputMode="numeric" value={saleForm.unit_price} onChange={e => setSaleForm({ ...saleForm, unit_price: e.target.value })} placeholder="Ex: 2500" />
                 </div>
               </div>
-
               {saleForm.quantity && saleForm.unit_price && (
                 <div style={{ padding: '12px', background: 'var(--beige)', borderRadius: '8px', textAlign: 'center', fontWeight: 600 }}>
                   Total: {(parseInt(saleForm.quantity) * parseFloat(saleForm.unit_price) || 0).toLocaleString()} DZD
                 </div>
               )}
-
               <div className="form-group">
                 <label>{t('admin.salesPage.notes')}</label>
-                <input type="text" value={saleForm.notes}
-                  onChange={e => setSaleForm({ ...saleForm, notes: e.target.value })} placeholder={t('admin.salesPage.notesPlaceholder')} />
+                <input type="text" value={saleForm.notes} onChange={e => setSaleForm({ ...saleForm, notes: e.target.value })} placeholder={t('admin.salesPage.notesPlaceholder')} />
               </div>
-
-              <button onClick={handleManualSale}
-                style={{ width: '100%', padding: '14px', background: 'var(--gold)', color: 'var(--white)', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '16px', cursor: 'pointer' }}>
+              <button onClick={handleManualSale} style={{ width: '100%', padding: '14px', background: 'var(--gold)', color: 'var(--white)', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '16px', cursor: 'pointer' }}>
                 {t('admin.salesPage.submit')}
               </button>
             </div>
           </div>
         </div>
       )}
+
       {/* Order Detail Modal */}
       {selectedOrder && (
         <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>
