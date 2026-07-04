@@ -849,6 +849,9 @@ export default function AdminDashboard() {
                 />
               </div>
 
+              <div className="form-group">
+                <label>{t('admin.uploadPhotos')}</label>
+
                 {/* Thumbnails */}
                 {productForm.images?.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
