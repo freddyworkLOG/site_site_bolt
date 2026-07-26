@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Colors */
+  --cream: #FFFFFF;
+  --beige: #F7F3F2;
+  --beige-dark: #E8DEDC;
+  --rose: #C9A0A6;
+  --rose-light: #DEBFC3;
+  --rose-dark: #A67C82;
+  --text: #1A1A1A;
+  --text-muted: #6B6260;
+  --border: #EDE3E1;
+  --white: #FFFFFF;
+  --success: #6B9E78;
+  --error: #C97070;
+
+  /* Backward-compat aliases so un-touched files still work */
+  --gold: var(--rose);
+  --gold-light: var(--rose-light);
+  --taupe: var(--rose-dark);
+
+  /* Typography */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-arabic: 'Cairo', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Spacing */
+  --max-width: 1200px;
+  --header-height: 60px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--cream);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* When Arabic is active, use Cairo for everything */
+[lang="ar"] body,
+[dir="rtl"] body {
+  font-family: var(--font-arabic);
+}
+
+/* Smooth RTL transitions */
+html {
+  transition: all 0.2s ease;
+}
+
+/* Mobile first — base styles are for mobile */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-height: 70px;
+  }
+  .container {
+    padding: 0 32px;
+  }
+}
