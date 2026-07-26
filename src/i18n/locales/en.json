@@ -52,6 +52,15 @@
       "nationwideDeliveryDesc": "All 58 wilayas via Yalidine & ZR Express",
       "qualityGuaranteed": "Quality Guaranteed",
       "qualityGuaranteedDesc": "Premium fabrics and expert craftsmanship"
+    },
+    "testimonials": {
+      "title": "What our clients say",
+      "items": [
+        { "quote": "Beautiful quality, exactly like the photos. Delivered in 3 days.", "name": "Amina", "wilaya": "Algiers" },
+        { "quote": "The fabric is gorgeous and the fit is perfect. Highly recommend.", "name": "Meriem", "wilaya": "Setif" },
+        { "quote": "Very responsive customer service, they helped me pick the right size.", "name": "Sarah", "wilaya": "Oran" },
+        { "quote": "My second order and still just as happy. Thank you Be Princess Collection.", "name": "Fatima", "wilaya": "Constantine" }
+      ]
     }
   },
   "shop": {
@@ -165,29 +174,6 @@
     "dashboard": "Dashboard",
     "products": "Products",
     "orders": "Orders",
-    "sales": "Sales",
-    "salesPage": {
-      "title": "In-store Sales",
-      "subtitle": "Sales made outside the website",
-      "newSale": "New sale",
-      "product": "Product",
-      "registered": "Recorded sales",
-      "itemsSold": "Items sold",
-      "revenue": "In-store revenue",
-      "empty": "No sales recorded yet",
-      "modalTitle": "New in-store sale",
-      "selectProduct": "Select a product",
-      "variant": "Variant (size / color)",
-      "selectVariant": "Select",
-      "quantity": "Quantity",
-      "unitPrice": "Unit price (DZD)",
-      "notes": "Notes (optional)",
-      "notesPlaceholder": "e.g. regular customer, discount...",
-      "submit": "Record sale",
-      "required": "Please fill in all required fields",
-      "success": "Sale recorded",
-      "cancelConfirm": "Cancel this sale and restore stock?"
-    },
     "customers": "Customers",
     "inventory": "Inventory",
     "addProduct": "Add Product",

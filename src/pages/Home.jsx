@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Truck, Banknote, BadgeCheck, ArrowLeft } from 'lucide-react'
+import { Truck, Banknote, BadgeCheck, ArrowLeft, Star } from 'lucide-react'
 import Layout from '../components/Layout'
 import ProductCard, { ProductCardSkeleton } from '../components/ProductCard'
 import { supabase } from '../lib/supabase'
@@ -352,6 +352,93 @@ export default function Home() {
           }
           [dir="rtl"] .trust-item {
             text-align: center !important;
+          }
+        }
+      `}</style>
+
+      {/* TESTIMONIALS */}
+      <section style={{ padding: '48px 0', backgroundColor: 'var(--cream)' }}>
+        <div className="container">
+          <h2
+            style={{
+              fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
+              fontSize: 'clamp(24px, 5vw, 32px)',
+              fontWeight: 600,
+              color: 'var(--text)',
+              textAlign: 'center',
+              marginBottom: '32px',
+            }}
+          >
+            {t('home.testimonials.title')}
+          </h2>
+
+          <div className="testimonials-scroll">
+            {t('home.testimonials.items', { returnObjects: true }).map((item, i) => (
+              <div className="testimonial-card" key={i}>
+                <div className="testimonial-stars" aria-label="5 stars">
+                  {[...Array(5)].map((_, s) => (
+                    <Star key={s} size={16} fill="currentColor" strokeWidth={0} />
+                  ))}
+                </div>
+                <p className="testimonial-quote">{item.quote}</p>
+                <p className="testimonial-name">
+                  {item.name} — {item.wilaya}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <style>{`
+        .testimonials-scroll {
+          display: flex;
+          gap: 16px;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          padding-bottom: 8px;
+          -webkit-overflow-scrolling: touch;
+        }
+        .testimonials-scroll::-webkit-scrollbar { height: 6px; }
+        .testimonials-scroll::-webkit-scrollbar-thumb { background: var(--beige-dark); border-radius: 999px; }
+        .testimonial-card {
+          flex: 0 0 80%;
+          scroll-snap-align: start;
+          background-color: var(--white);
+          border-radius: 12px;
+          padding: 24px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          border: 1px solid var(--border);
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .testimonial-stars {
+          display: flex;
+          gap: 2px;
+          color: var(--gold);
+        }
+        .testimonial-quote {
+          font-size: 14px;
+          line-height: 1.6;
+          color: var(--text);
+          font-style: italic;
+        }
+        .testimonial-name {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--rose-dark);
+          margin-top: auto;
+        }
+        @media (min-width: 768px) {
+          .testimonials-scroll {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            overflow: visible;
+            gap: 24px;
+          }
+          .testimonial-card {
+            flex: none;
           }
         }
       `}</style>

@@ -52,6 +52,15 @@
       "nationwideDeliveryDesc": "Les 58 wilayas via Yalidine & ZR Express",
       "qualityGuaranteed": "Qualite Garantie",
       "qualityGuaranteedDesc": "Tissus premium et savoir-faire expert"
+    },
+    "testimonials": {
+      "title": "Ce que disent nos clientes",
+      "items": [
+        { "quote": "Qualite magnifique, exactement comme sur les photos. Livraison rapide en 3 jours.", "name": "Amina", "wilaya": "Alger" },
+        { "quote": "Le tissu est superbe et la coupe est parfaite. Je recommande a 100%.", "name": "Meriem", "wilaya": "Setif" },
+        { "quote": "Service client tres reactif, ils m'ont aidee a choisir la bonne taille.", "name": "Sarah", "wilaya": "Oran" },
+        { "quote": "Ma deuxieme commande et toujours aussi satisfaite. Merci Be Princess Collection.", "name": "Fatima", "wilaya": "Constantine" }
+      ]
     }
   },
   "shop": {
@@ -165,29 +174,6 @@
     "dashboard": "Tableau de bord",
     "products": "Produits",
     "orders": "Commandes",
-    "sales": "Ventes",
-    "salesPage": {
-      "title": "Ventes en boutique",
-      "subtitle": "Ventes faites en dehors du site",
-      "newSale": "Nouvelle vente",
-      "product": "Produit",
-      "registered": "Ventes enregistrees",
-      "itemsSold": "Articles vendus",
-      "revenue": "Chiffre d'affaires boutique",
-      "empty": "Aucune vente enregistree pour l'instant",
-      "modalTitle": "Nouvelle vente en boutique",
-      "selectProduct": "Selectionner un produit",
-      "variant": "Variante (taille / couleur)",
-      "selectVariant": "Selectionner",
-      "quantity": "Quantite",
-      "unitPrice": "Prix unitaire (DZD)",
-      "notes": "Notes (optionnel)",
-      "notesPlaceholder": "Ex: cliente reguliere, remise...",
-      "submit": "Enregistrer la vente",
-      "required": "Remplissez tous les champs obligatoires",
-      "success": "Vente enregistree",
-      "cancelConfirm": "Annuler cette vente et remettre le stock ?"
-    },
     "customers": "Clients",
     "inventory": "Inventaire",
     "addProduct": "Ajouter un produit",
