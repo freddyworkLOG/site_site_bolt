@@ -56,10 +56,26 @@
     "testimonials": {
       "title": "What our clients say",
       "items": [
-        { "quote": "Beautiful quality, exactly like the photos. Delivered in 3 days.", "name": "Amina", "wilaya": "Algiers" },
-        { "quote": "The fabric is gorgeous and the fit is perfect. Highly recommend.", "name": "Meriem", "wilaya": "Setif" },
-        { "quote": "Very responsive customer service, they helped me pick the right size.", "name": "Sarah", "wilaya": "Oran" },
-        { "quote": "My second order and still just as happy. Thank you Be Princess Collection.", "name": "Fatima", "wilaya": "Constantine" }
+        {
+          "quote": "Beautiful quality, exactly like the photos. Delivered in 3 days.",
+          "name": "Amina",
+          "wilaya": "Algiers"
+        },
+        {
+          "quote": "The fabric is gorgeous and the fit is perfect. Highly recommend.",
+          "name": "Meriem",
+          "wilaya": "Setif"
+        },
+        {
+          "quote": "Very responsive customer service, they helped me pick the right size.",
+          "name": "Sarah",
+          "wilaya": "Oran"
+        },
+        {
+          "quote": "My second order and still just as happy. Thank you Be Princess Collection.",
+          "name": "Fatima",
+          "wilaya": "Constantine"
+        }
       ]
     }
   },
@@ -214,6 +230,29 @@
     "totalOrders": "Total Orders",
     "totalProducts": "Total Products",
     "pendingOrders": "Pending Orders",
-    "recentOrders": "Recent Orders"
+    "recentOrders": "Recent Orders",
+    "sales": "Sales",
+    "salesPage": {
+      "title": "Manual Sales",
+      "subtitle": "Record sales made in the physical shop",
+      "newSale": "New Sale",
+      "registered": "Sales Recorded",
+      "itemsSold": "Items Sold",
+      "revenue": "Revenue",
+      "empty": "No sales recorded yet",
+      "product": "Product",
+      "unitPrice": "Unit Price",
+      "modalTitle": "Record a Sale",
+      "selectProduct": "Select a product",
+      "variant": "Variant",
+      "selectVariant": "Select a variant",
+      "quantity": "Quantity",
+      "notes": "Notes",
+      "notesPlaceholder": "Optional notes...",
+      "submit": "Save Sale",
+      "required": "Please fill in all required fields",
+      "success": "Sale recorded successfully",
+      "cancelConfirm": "Are you sure you want to cancel this sale?"
+    }
   }
 }

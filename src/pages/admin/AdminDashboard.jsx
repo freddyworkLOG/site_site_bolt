@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import {
   Package, ShoppingBag, Users, AlertCircle, LogOut, Plus, Edit2, Trash2,
-  X, Check, Loader2, ChevronDown, Eye, FileText, Truck, Search, Upload
+  X, Check, Loader2, ChevronDown, Eye, FileText, Truck, Search, Upload, PackageCheck
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 const TABS = ['dashboard', 'products', 'orders', 'sales']
+const ORDER_SUBTABS = ['new', 'confirmed']
 const CATEGORIES = ['abayas', 'jilbabs', 'kimonos', 'ensembles', 'accessories']
 const SIZES = ['S (36)', 'Taille 1 (38-40)', 'Taille 2 (42-44)', 'Taille 3 (Sur commande)']
 const STATUS_OPTIONS = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
@@ -104,9 +105,14 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [orderSubtab, setOrderSubtab] = useState('new')
+  const [confirmingOrderId, setConfirmingOrderId] = useState(null)
+  const [trackingByOrder, setTrackingByOrder] = useState({})
 
   // Image upload
   const [uploadingImages, setUploadingImages] = useState(false)
+
+  // Manual sales (Ventes)
   const [showSaleModal, setShowSaleModal] = useState(false)
   const [saleForm, setSaleForm] = useState({ product_id: '', variant_id: '', quantity: 1, unit_price: '', notes: '' })
   const [manualSales, setManualSales] = useState([])
@@ -229,26 +235,134 @@ export default function AdminDashboard() {
     }
   }
 
-  // Load orders
+  // Load orders (load both groups + delivery slips for confirmed orders)
   const loadOrders = async () => {
     setOrdersLoading(true)
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50)
 
-      if (statusFilter) {
-        query = query.eq('status', statusFilter)
-      }
+      if (error) throw error
 
-      const { data, error } = await query
-      if (!error && data) setOrders(data)
+      setOrders(data || [])
+
+      // Fetch tracking numbers for confirmed (non-pending) orders
+      const nonPending = (data || []).filter((o) => o.status !== 'pending')
+      if (nonPending.length) {
+        const ids = nonPending.map((o) => o.id)
+        const { data: slips } = await supabase
+          .from('delivery_slips')
+          .select('order_id, tracking_number')
+          .in('order_id', ids)
+        const map = {}
+        for (const s of (slips || [])) {
+          if (s.tracking_number) map[s.order_id] = s.tracking_number
+        }
+        setTrackingByOrder(map)
+      } else {
+        setTrackingByOrder({})
+      }
     } catch (err) {
       console.error('Error loading orders:', err)
     } finally {
       setOrdersLoading(false)
+    }
+  }
+
+  const loadManualSales = async () => {
+    setManualSalesLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('manual_sales')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100)
+      if (!error && data) setManualSales(data)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setManualSalesLoading(false)
+    }
+  }
+
+  // offline sales
+  const handleManualSale = async () => {
+    if (!saleForm.product_id || !saleForm.variant_id || !saleForm.quantity || !saleForm.unit_price) {
+      alert(t('admin.salesPage.required'))
+      return
+    }
+    try {
+      const selectedProduct = products.find(p => p.id === saleForm.product_id)
+      const selectedVariant = selectedProduct?.product_variants?.find(v => v.id === saleForm.variant_id)
+      const qty = parseInt(saleForm.quantity)
+      const price = parseFloat(saleForm.unit_price)
+      const { error: saleError } = await supabase.from('manual_sales').insert({
+        product_id: saleForm.product_id,
+        variant_id: saleForm.variant_id,
+        product_name: selectedProduct?.name_fr || selectedProduct?.name_en || '',
+        size: selectedVariant?.size || '',
+        color: selectedVariant?.color_fr || selectedVariant?.color_en || '',
+        quantity: qty,
+        unit_price: price,
+        total_price: qty * price,
+        notes: saleForm.notes.trim() || null
+      })
+      if (saleError) throw saleError
+      const { error: stockError } = await supabase
+        .from('product_variants')
+        .update({ stock_quantity: Math.max(0, (selectedVariant?.stock_quantity || 0) - qty) })
+        .eq('id', saleForm.variant_id)
+      if (stockError) throw stockError
+      setShowSaleModal(false)
+      setSaleForm({ product_id: '', variant_id: '', quantity: 1, unit_price: '', notes: '' })
+      loadManualSales()
+      loadProducts()
+      alert(t('admin.salesPage.success'))
+    } catch (err) {
+      alert('Erreur: ' + err.message)
+    }
+  }
+
+  const cancelManualSale = async (saleId, variantId, quantity) => {
+    if (!window.confirm(t('admin.salesPage.cancelConfirm'))) return
+    try {
+      const { data: variant } = await supabase
+        .from('product_variants').select('stock_quantity').eq('id', variantId).single()
+      await supabase
+        .from('product_variants')
+        .update({ stock_quantity: (variant?.stock_quantity || 0) + quantity })
+        .eq('id', variantId)
+      await supabase.from('manual_sales').delete().eq('id', saleId)
+      loadManualSales()
+      loadProducts()
+    } catch (err) {
+      alert('Erreur: ' + err.message)
+    }
+  }
+
+  // Confirm & create ZR parcel for a pending order
+  const handleConfirmOrder = async (orderId) => {
+    setConfirmingOrderId(orderId)
+    try {
+      const res = await fetch('/.netlify/functions/create-zr-parcel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data?.error || 'Failed to create parcel')
+      }
+      // Optimistic local update: move order to confirmed tab + store tracking
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'confirmed' } : o)))
+      setTrackingByOrder((prev) => ({ ...prev, [orderId]: data.tracking_number }))
+    } catch (err) {
+      alert('Erreur: ' + err.message)
+    } finally {
+      setConfirmingOrderId(null)
     }
   }
 
@@ -266,10 +380,9 @@ export default function AdminDashboard() {
       category: 'abayas',
       images: [],
       is_active: true,
-     price: '',
-    colorGroups: []
+      colorGroups: []
+    }
   }
-}
 
   const addColorGroup = () =>
     setProductForm(prev => ({ ...prev, colorGroups: [...prev.colorGroups, getEmptyColorGroup()] }))
@@ -337,8 +450,7 @@ export default function AdminDashboard() {
           groupMap[v.color_en].sizes[sizeIdx].stock_quantity = v.stock_quantity?.toString() || ''
         }
       }
-      const existingPrice = product.product_variants?.[0]?.price_dzd?.toString() || ''
-    setProductForm({ ...product, price: existingPrice, colorGroups: Object.values(groupMap) })
+      setProductForm({ ...product, colorGroups: Object.values(groupMap) })
       setEditingProduct(product)
     } else {
       setProductForm(getEmptyProduct())
@@ -376,7 +488,7 @@ export default function AdminDashboard() {
             color_fr: group.color_fr,
             color_ar: group.color_ar,
             size: s.size,
-            price_dzd: parseInt(productForm.price) || 0,
+            price_dzd: parseInt(s.price_dzd) || 0,
             stock_quantity: parseInt(s.stock_quantity) || 0,
             is_active: true
           }))
@@ -422,83 +534,19 @@ export default function AdminDashboard() {
       console.error('Error updating order:', err)
     }
   }
-  const loadManualSales = async () => {
-    setManualSalesLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('manual_sales')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100)
-      if (!error && data) setManualSales(data)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setManualSalesLoading(false)
-    }
-  }
- //offline sales
-  const handleManualSale = async () => {
-    if (!saleForm.product_id || !saleForm.variant_id || !saleForm.quantity || !saleForm.unit_price) {
-      alert(t('admin.salesPage.required'))
-      return
-    }
-    try {
-      const selectedProduct = products.find(p => p.id === saleForm.product_id)
-      const selectedVariant = selectedProduct?.product_variants?.find(v => v.id === saleForm.variant_id)
-      const qty = parseInt(saleForm.quantity)
-      const price = parseFloat(saleForm.unit_price)
-      const { error: saleError } = await supabase.from('manual_sales').insert({
-        product_id: saleForm.product_id,
-        variant_id: saleForm.variant_id,
-        product_name: selectedProduct?.name_fr || selectedProduct?.name_en || '',
-        size: selectedVariant?.size || '',
-        color: selectedVariant?.color_fr || selectedVariant?.color_en || '',
-        quantity: qty,
-        unit_price: price,
-        total_price: qty * price,
-        notes: saleForm.notes.trim() || null
-      })
-      if (saleError) throw saleError
-      const { error: stockError } = await supabase
-        .from('product_variants')
-        .update({ stock_quantity: Math.max(0, (selectedVariant?.stock_quantity || 0) - qty) })
-        .eq('id', saleForm.variant_id)
-      if (stockError) throw stockError
-      setShowSaleModal(false)
-      setSaleForm({ product_id: '', variant_id: '', quantity: 1, unit_price: '', notes: '' })
-      loadManualSales()
-      loadProducts()
-      alert(t('admin.salesPage.success'))
-    } catch (err) {
-      alert('Erreur: ' + err.message)
-    }
-  }
 
-  const cancelManualSale = async (saleId, variantId, quantity) => {
-    if (!window.confirm(t('admin.salesPage.cancelConfirm'))) return
-    try {
-      const { data: variant } = await supabase
-        .from('product_variants').select('stock_quantity').eq('id', variantId).single()
-      await supabase
-        .from('product_variants')
-        .update({ stock_quantity: (variant?.stock_quantity || 0) + quantity })
-        .eq('id', variantId)
-      await supabase.from('manual_sales').delete().eq('id', saleId)
-      loadManualSales()
-      loadProducts()
-    } catch (err) {
-      alert('Erreur: ' + err.message)
-    }
-  }
-
-  // Filter orders
-  const filteredOrders = orders.filter(order =>
+  // Filter orders by search query
+  const searchFiltered = orders.filter(order =>
     !searchQuery ||
     order.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     order.customer_phone?.includes(searchQuery) ||
     order.id?.includes(searchQuery)
   )
+
+  // Split into the two sub-tabs
+  const newOrders = searchFiltered.filter((o) => o.status === 'pending')
+  const confirmedOrders = searchFiltered.filter((o) => o.status !== 'pending')
+  const filteredOrders = orderSubtab === 'new' ? newOrders : confirmedOrders
 
   // Loading state
   if (loading) {
@@ -530,21 +578,24 @@ export default function AdminDashboard() {
           >
             Be Princess Collection — Admin
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {['fr', 'ar', 'en'].map(lang => (
-              <button key={lang} onClick={() => i18n.changeLanguage(lang)}
-                style={{ padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', background: i18n.language === lang ? 'var(--gold)' : 'transparent', color: i18n.language === lang ? 'var(--white)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '13px', fontWeight: 500 }}>
-                {lang.toUpperCase()}
-              </button>
-            ))}
-            <button
-              onClick={handleSignOut}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: 'none', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px' }}
-            >
-              <LogOut size={18} />
-              {t('admin.signOut')}
-            </button>
-          </div>
+          <button
+            onClick={handleSignOut}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              background: 'none',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              fontSize: '14px',
+            }}
+          >
+            <LogOut size={18} />
+            {t('admin.signOut')}
+          </button>
         </div>
       </header>
 
@@ -602,6 +653,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
         {/* Sales */}
         {activeTab === 'sales' && (
           <div>
@@ -746,19 +798,51 @@ export default function AdminDashboard() {
                     style={{ padding: '8px 12px 8px 36px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px' }}
                   />
                 </div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  style={{ padding: '8px 12px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px' }}
-                >
-                  <option value="">All Status</option>
-                  {STATUS_OPTIONS.map(s => <option key={s} value={s}>{t(`admin.${s}`)}</option>)}
-                </select>
               </div>
+            </div>
+
+            {/* Order sub-tabs */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              <button
+                onClick={() => setOrderSubtab('new')}
+                style={{
+                  padding: '8px 16px', borderRadius: '999px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                  border: '1px solid', transition: 'all 0.15s ease',
+                  background: orderSubtab === 'new' ? 'var(--gold)' : 'transparent',
+                  color: orderSubtab === 'new' ? 'white' : 'var(--text)',
+                  borderColor: orderSubtab === 'new' ? 'var(--gold)' : 'var(--border)',
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                }}
+              >
+                <ShoppingBag size={14} /> Nouvelles commandes
+                <span style={{ background: orderSubtab === 'new' ? 'rgba(255,255,255,0.25)' : 'var(--beige)', padding: '1px 8px', borderRadius: '999px', fontSize: '11px' }}>
+                  {newOrders.length}
+                </span>
+              </button>
+              <button
+                onClick={() => setOrderSubtab('confirmed')}
+                style={{
+                  padding: '8px 16px', borderRadius: '999px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                  border: '1px solid', transition: 'all 0.15s ease',
+                  background: orderSubtab === 'confirmed' ? 'var(--gold)' : 'transparent',
+                  color: orderSubtab === 'confirmed' ? 'white' : 'var(--text)',
+                  borderColor: orderSubtab === 'confirmed' ? 'var(--gold)' : 'var(--border)',
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                }}
+              >
+                <PackageCheck size={14} /> Commandes confirmées
+                <span style={{ background: orderSubtab === 'confirmed' ? 'rgba(255,255,255,0.25)' : 'var(--beige)', padding: '1px 8px', borderRadius: '999px', fontSize: '11px' }}>
+                  {confirmedOrders.length}
+                </span>
+              </button>
             </div>
 
             {ordersLoading ? (
               <div style={{ textAlign: 'center', padding: '40px' }}><Loader2 className="spin" size={24} /></div>
+            ) : filteredOrders.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontSize: '14px' }}>
+                {orderSubtab === 'new' ? 'Aucune nouvelle commande' : 'Aucune commande confirmée'}
+              </div>
             ) : (
               <div className="orders-table">
                 <table>
@@ -769,7 +853,14 @@ export default function AdminDashboard() {
                       <th>{t('checkout.phone')}</th>
                       <th>{t('checkout.wilaya')}</th>
                       <th>{t('common.total')}</th>
-                      <th>{t('admin.orderStatus')}</th>
+                      {orderSubtab === 'new' ? (
+                        <th style={{ textAlign: 'center' }}>Confirmer</th>
+                      ) : (
+                        <>
+                          <th>{t('admin.orderStatus')}</th>
+                          <th>Tracking</th>
+                        </>
+                      )}
                       <th>Date</th>
                       <th style={{ textAlign: 'center' }}>Actions</th>
                     </tr>
@@ -782,16 +873,63 @@ export default function AdminDashboard() {
                         <td>{order.customer_phone}</td>
                         <td>{order.wilaya}</td>
                         <td style={{ fontWeight: 600 }}>{order.total?.toLocaleString()} DZD</td>
-                        <td>
-                          <select
-                            value={order.status}
-                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                            className={`status-select ${order.status}`}
-                            style={{ fontSize: '12px', padding: '4px 8px' }}
-                          >
-                            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{t(`admin.${s}`)}</option>)}
-                          </select>
-                        </td>
+                        {orderSubtab === 'new' ? (
+                          <td style={{ textAlign: 'center' }}>
+                            {order.delivery_method === 'yalidine' ? (
+                              <button
+                                disabled
+                                title="Yalidine — bientôt disponible"
+                                style={{
+                                  padding: '6px 12px', fontSize: '12px', borderRadius: '6px', cursor: 'not-allowed',
+                                  border: '1px solid var(--border)', background: 'var(--beige)', color: 'var(--text-muted)',
+                                  opacity: 0.7,
+                                }}
+                              >
+                                Yalidine — bientôt disponible
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleConfirmOrder(order.id)}
+                                disabled={confirmingOrderId === order.id}
+                                style={{
+                                  padding: '6px 12px', fontSize: '12px', fontWeight: 600, borderRadius: '6px', cursor: 'pointer',
+                                  border: 'none', background: 'var(--gold)', color: 'white',
+                                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                  opacity: confirmingOrderId === order.id ? 0.7 : 1,
+                                }}
+                              >
+                                {confirmingOrderId === order.id ? (
+                                  <><Loader2 size={13} className="spin" /> Création...</>
+                                ) : (
+                                  <><PackageCheck size={13} /> Confirmer & créer étiquette</>
+                                )}
+                              </button>
+                            )}
+                          </td>
+                        ) : (
+                          <>
+                            <td>
+                              <select
+                                value={order.status}
+                                onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                                className={`status-select ${order.status}`}
+                                style={{ fontSize: '12px', padding: '4px 8px' }}
+                              >
+                                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{t(`admin.${s}`)}</option>)}
+                              </select>
+                            </td>
+                            <td>
+                              {trackingByOrder[order.id] ? (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: 'var(--gold)' }}>
+                                  <Truck size={14} />
+                                  <code style={{ fontSize: '12px' }}>{trackingByOrder[order.id]}</code>
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>—</span>
+                              )}
+                            </td>
+                          </>
+                        )}
                         <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                           {new Date(order.created_at).toLocaleDateString()}
                         </td>
@@ -818,8 +956,16 @@ export default function AdminDashboard() {
             </div>
             <form onSubmit={handleProductSubmit} className="modal-body">
               <div className="form-group">
-                <label>Nom du produit *</label>
-                <input type="text" value={productForm.name_fr} onChange={e => setProductForm({ ...productForm, name_fr: e.target.value, name_en: e.target.value, name_ar: e.target.value })} placeholder="Ex: Abaya Klassique" required />
+                <label>Nom (FR)</label>
+                <input type="text" value={productForm.name_fr} onChange={e => setProductForm({ ...productForm, name_fr: e.target.value })} placeholder="Ex: Abaya Klassique" required />
+              </div>
+              <div className="form-group">
+                <label>Nom (EN)</label>
+                <input type="text" value={productForm.name_en} onChange={e => setProductForm({ ...productForm, name_en: e.target.value })} placeholder="Ex: Classic Abaya" />
+              </div>
+              <div className="form-group">
+                <label>Nom (AR)</label>
+                <input type="text" value={productForm.name_ar} onChange={e => setProductForm({ ...productForm, name_ar: e.target.value })} placeholder="مثال: عباية كلاسيكية" dir="rtl" />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -836,17 +982,6 @@ export default function AdminDashboard() {
                     <option value="false">Inactif</option>
                   </select>
                 </div>
-              </div>
-
-              <div className="form-group">
-                <label>Prix (DZD) *</label>
-                <input
-                  type="text" inputMode="numeric" pattern="[0-9]*"
-                  placeholder="Ex: 2500"
-                  value={productForm.price}
-                  onChange={e => setProductForm({ ...productForm, price: e.target.value })}
-                  required
-                />
               </div>
 
               <div className="form-group">
@@ -997,17 +1132,31 @@ export default function AdminDashboard() {
                             {s.size}
                           </button>
                           {s.enabled && (
-                            <div style={{ paddingLeft: '8px' }}>
-                              <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                                Stock
-                              </label>
-                              <input
-                                type="text" inputMode="numeric" pattern="[0-9]*"
-                                placeholder="Ex: 10"
-                                value={s.stock_quantity}
-                                onChange={e => updateSize(gi, si, 'stock_quantity', e.target.value)}
-                                style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
-                              />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingLeft: '8px' }}>
+                              <div>
+                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                                  Prix (DZD)
+                                </label>
+                                <input
+                                  type="text" inputMode="numeric" pattern="[0-9]*"
+                                  placeholder="Ex: 2500"
+                                  value={s.price_dzd}
+                                  onChange={e => updateSize(gi, si, 'price_dzd', e.target.value)}
+                                  style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                                  Stock
+                                </label>
+                                <input
+                                  type="text" inputMode="numeric" pattern="[0-9]*"
+                                  placeholder="Ex: 10"
+                                  value={s.stock_quantity}
+                                  onChange={e => updateSize(gi, si, 'stock_quantity', e.target.value)}
+                                  style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+                                />
+                              </div>
                             </div>
                           )}
                         </div>

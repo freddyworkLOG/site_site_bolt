@@ -56,10 +56,26 @@
     "testimonials": {
       "title": "Ce que disent nos clientes",
       "items": [
-        { "quote": "Qualite magnifique, exactement comme sur les photos. Livraison rapide en 3 jours.", "name": "Amina", "wilaya": "Alger" },
-        { "quote": "Le tissu est superbe et la coupe est parfaite. Je recommande a 100%.", "name": "Meriem", "wilaya": "Setif" },
-        { "quote": "Service client tres reactif, ils m'ont aidee a choisir la bonne taille.", "name": "Sarah", "wilaya": "Oran" },
-        { "quote": "Ma deuxieme commande et toujours aussi satisfaite. Merci Be Princess Collection.", "name": "Fatima", "wilaya": "Constantine" }
+        {
+          "quote": "Qualite magnifique, exactement comme sur les photos. Livraison rapide en 3 jours.",
+          "name": "Amina",
+          "wilaya": "Alger"
+        },
+        {
+          "quote": "Le tissu est superbe et la coupe est parfaite. Je recommande a 100%.",
+          "name": "Meriem",
+          "wilaya": "Setif"
+        },
+        {
+          "quote": "Service client tres reactif, ils m'ont aidee a choisir la bonne taille.",
+          "name": "Sarah",
+          "wilaya": "Oran"
+        },
+        {
+          "quote": "Ma deuxieme commande et toujours aussi satisfaite. Merci Be Princess Collection.",
+          "name": "Fatima",
+          "wilaya": "Constantine"
+        }
       ]
     }
   },
@@ -214,6 +230,29 @@
     "totalOrders": "Total commandes",
     "totalProducts": "Total produits",
     "pendingOrders": "Commandes en attente",
-    "recentOrders": "Commandes recentes"
+    "recentOrders": "Commandes recentes",
+    "sales": "Ventes",
+    "salesPage": {
+      "title": "Ventes manuelles",
+      "subtitle": "Enregistrez les ventes réalisées en boutique physique",
+      "newSale": "Nouvelle vente",
+      "registered": "Ventes enregistrées",
+      "itemsSold": "Articles vendus",
+      "revenue": "Chiffre d'affaires",
+      "empty": "Aucune vente enregistrée pour le moment",
+      "product": "Produit",
+      "unitPrice": "Prix unitaire",
+      "modalTitle": "Enregistrer une vente",
+      "selectProduct": "Sélectionner un produit",
+      "variant": "Variante",
+      "selectVariant": "Sélectionner une variante",
+      "quantity": "Quantité",
+      "notes": "Notes",
+      "notesPlaceholder": "Notes optionnelles...",
+      "submit": "Enregistrer la vente",
+      "required": "Veuillez remplir tous les champs obligatoires",
+      "success": "Vente enregistrée avec succès",
+      "cancelConfirm": "Voulez-vous vraiment annuler cette vente ?"
+    }
   }
 }
