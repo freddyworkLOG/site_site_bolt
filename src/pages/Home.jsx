@@ -66,30 +66,17 @@ export default function Home() {
   return (
     <Layout>
       {/* HERO SECTION */}
-      <section
-        style={{
-          position: 'relative',
-          minHeight: '70vh',
-          height: '70vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: `linear-gradient(135deg, var(--beige) 0%, var(--cream) 50%, var(--beige-dark) 100%)`,
-          overflow: 'hidden',
-        }}
-      >
-        {/* Decorative pattern overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            opacity: 0.03,
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
+      <section className="hero-section">
+        {/* Blurred ambient shapes (behind pattern, behind text) */}
+        <div className="hero-blob hero-blob--rose" aria-hidden="true" />
+        <div className="hero-blob hero-blob--beige" aria-hidden="true" />
+
+        {/* Arabesque line pattern overlay */}
+        <div className="hero-arabesque" aria-hidden="true" />
 
         {/* Content */}
         <div
+          className="hero-content"
           style={{
             position: 'relative',
             textAlign: 'center',
