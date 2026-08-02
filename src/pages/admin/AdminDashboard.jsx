@@ -578,24 +578,47 @@ export default function AdminDashboard() {
           >
             Be Princess Collection — Admin
           </h1>
-          <button
-            onClick={handleSignOut}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 16px',
-              background: 'none',
-              border: '1px solid var(--border)',
-              borderRadius: '8px',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontSize: '14px',
-            }}
-          >
-            <LogOut size={18} />
-            {t('admin.signOut')}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', gap: '4px', background: 'var(--beige)', borderRadius: '8px', padding: '4px' }}>
+              {['fr', 'en', 'ar'].map(lng => (
+                <button
+                  key={lng}
+                  onClick={() => i18n.changeLanguage(lng)}
+                  style={{
+                    padding: '6px 12px',
+                    border: 'none',
+                    borderRadius: '6px',
+                    background: i18n.language === lng ? 'var(--gold)' : 'transparent',
+                    color: i18n.language === lng ? 'white' : 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {lng}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleSignOut}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                background: 'none',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+                fontSize: '14px',
+              }}
+            >
+              <LogOut size={18} />
+              {t('admin.signOut')}
+            </button>
+          </div>
         </div>
       </header>
 
