@@ -26,7 +26,8 @@
     "viewProduct": "عرض المنتج",
     "backToShop": "العودة إلى المتجر",
     "viewAll": "عرض الكل",
-    "from": "ابتداءً من"
+    "from": "ابتداءً من",
+    "date": "التاريخ"
   },
   "home": {
     "heroTitle": "Be Princess Collection",
@@ -253,6 +254,21 @@
       "required": "يرجى ملء جميع الحقول المطلوبة",
       "success": "تم تسجيل عملية البيع بنجاح",
       "cancelConfirm": "هل تريدين حقاً إلغاء عملية البيع هذه؟"
+    },
+    "ordersPage": {
+      "newTab": "طلبات جديدة",
+      "confirmedTab": "طلبات مؤكدة",
+      "orderId": "رقم الطلب",
+      "confirmColumn": "تأكيد",
+      "actions": "إجراءات",
+      "tracking": "التتبع",
+      "searchPlaceholder": "البحث بالاسم أو الهاتف...",
+      "emptyNew": "لا توجد طلبات جديدة",
+      "emptyConfirmed": "لا توجد طلبات مؤكدة",
+      "confirmButton": "تأكيد وإنشاء ملصق الشحن",
+      "creating": "جارٍ الإنشاء...",
+      "yalidineSoon": "ياليدين — قريباً",
+      "confirmDialog": "هل تريدين تأكيد هذا الطلب؟ سيؤدي هذا إلى إنشاء ملصق شحن ZR Express ولا يمكن التراجع عنه بسهولة."
     }
   }
 }

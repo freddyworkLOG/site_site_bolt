@@ -26,7 +26,8 @@
     "viewProduct": "View Product",
     "backToShop": "Back to Shop",
     "viewAll": "View All",
-    "from": "From"
+    "from": "From",
+    "date": "Date"
   },
   "home": {
     "heroTitle": "Be Princess Collection",
@@ -253,6 +254,21 @@
       "required": "Please fill in all required fields",
       "success": "Sale recorded successfully",
       "cancelConfirm": "Are you sure you want to cancel this sale?"
+    },
+    "ordersPage": {
+      "newTab": "New Orders",
+      "confirmedTab": "Confirmed Orders",
+      "orderId": "Order ID",
+      "confirmColumn": "Confirm",
+      "actions": "Actions",
+      "tracking": "Tracking",
+      "searchPlaceholder": "Search by name, phone...",
+      "emptyNew": "No new orders",
+      "emptyConfirmed": "No confirmed orders",
+      "confirmButton": "Confirm & Create Label",
+      "creating": "Creating...",
+      "yalidineSoon": "Yalidine — coming soon",
+      "confirmDialog": "Confirm this order? This will create a ZR Express shipping label and can't easily be undone."
     }
   }
 }

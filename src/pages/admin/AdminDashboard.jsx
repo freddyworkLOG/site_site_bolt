@@ -706,7 +706,7 @@ export default function AdminDashboard() {
               <div className="products-table">
                 <table>
                   <thead>
-                    <tr><th>{t('admin.salesPage.product')}</th><th>{t('admin.size')}</th><th>{t('admin.color')}</th><th>{t('common.quantity')}</th><th>{t('admin.salesPage.unitPrice')}</th><th>{t('common.total')}</th><th>Date</th><th></th></tr>
+                    <tr><th>{t('admin.salesPage.product')}</th><th>{t('admin.size')}</th><th>{t('admin.color')}</th><th>{t('common.quantity')}</th><th>{t('admin.salesPage.unitPrice')}</th><th>{t('common.total')}</th><th>{t('common.date')}</th><th></th></tr>
                   </thead>
                   <tbody>
                     {manualSales.map(sale => (
@@ -815,7 +815,7 @@ export default function AdminDashboard() {
                   <Search size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
                     type="text"
-                    placeholder="Search by name, phone..."
+                    placeholder={t('admin.ordersPage.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{ padding: '8px 12px 8px 36px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px' }}
@@ -837,7 +837,7 @@ export default function AdminDashboard() {
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                 }}
               >
-                <ShoppingBag size={14} /> Nouvelles commandes
+                <ShoppingBag size={14} /> {t('admin.ordersPage.newTab')}
                 <span style={{ background: orderSubtab === 'new' ? 'rgba(255,255,255,0.25)' : 'var(--beige)', padding: '1px 8px', borderRadius: '999px', fontSize: '11px' }}>
                   {newOrders.length}
                 </span>
@@ -853,7 +853,7 @@ export default function AdminDashboard() {
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                 }}
               >
-                <PackageCheck size={14} /> Commandes confirmées
+                <PackageCheck size={14} /> {t('admin.ordersPage.confirmedTab')}
                 <span style={{ background: orderSubtab === 'confirmed' ? 'rgba(255,255,255,0.25)' : 'var(--beige)', padding: '1px 8px', borderRadius: '999px', fontSize: '11px' }}>
                   {confirmedOrders.length}
                 </span>
@@ -864,28 +864,28 @@ export default function AdminDashboard() {
               <div style={{ textAlign: 'center', padding: '40px' }}><Loader2 className="spin" size={24} /></div>
             ) : filteredOrders.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontSize: '14px' }}>
-                {orderSubtab === 'new' ? 'Aucune nouvelle commande' : 'Aucune commande confirmée'}
+                {orderSubtab === 'new' ? t('admin.ordersPage.emptyNew') : t('admin.ordersPage.emptyConfirmed')}
               </div>
             ) : (
               <div className="orders-table">
                 <table>
                   <thead>
                     <tr>
-                      <th>Order ID</th>
+                      <th>{t('admin.ordersPage.orderId')}</th>
                       <th>{t('checkout.name')}</th>
                       <th>{t('checkout.phone')}</th>
                       <th>{t('checkout.wilaya')}</th>
                       <th>{t('common.total')}</th>
                       {orderSubtab === 'new' ? (
-                        <th style={{ textAlign: 'center' }}>Confirmer</th>
+                        <th style={{ textAlign: 'center' }}>{t('admin.ordersPage.confirmColumn')}</th>
                       ) : (
                         <>
                           <th>{t('admin.orderStatus')}</th>
-                          <th>Tracking</th>
+                          <th>{t('admin.ordersPage.tracking')}</th>
                         </>
                       )}
-                      <th>Date</th>
-                      <th style={{ textAlign: 'center' }}>Actions</th>
+                      <th>{t('common.date')}</th>
+                      <th style={{ textAlign: 'center' }}>{t('admin.ordersPage.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -901,18 +901,22 @@ export default function AdminDashboard() {
                             {order.delivery_method === 'yalidine' ? (
                               <button
                                 disabled
-                                title="Yalidine — bientôt disponible"
+                                title={t('admin.ordersPage.yalidineSoon')}
                                 style={{
                                   padding: '6px 12px', fontSize: '12px', borderRadius: '6px', cursor: 'not-allowed',
                                   border: '1px solid var(--border)', background: 'var(--beige)', color: 'var(--text-muted)',
                                   opacity: 0.7,
                                 }}
                               >
-                                Yalidine — bientôt disponible
+                                {t('admin.ordersPage.yalidineSoon')}
                               </button>
                             ) : (
                               <button
-                                onClick={() => handleConfirmOrder(order.id)}
+                                onClick={() => {
+                                  if (window.confirm(t('admin.ordersPage.confirmDialog'))) {
+                                    handleConfirmOrder(order.id)
+                                  }
+                                }}
                                 disabled={confirmingOrderId === order.id}
                                 style={{
                                   padding: '6px 12px', fontSize: '12px', fontWeight: 600, borderRadius: '6px', cursor: 'pointer',
@@ -922,9 +926,9 @@ export default function AdminDashboard() {
                                 }}
                               >
                                 {confirmingOrderId === order.id ? (
-                                  <><Loader2 size={13} className="spin" /> Création...</>
+                                  <><Loader2 size={13} className="spin" /> {t('admin.ordersPage.creating')}</>
                                 ) : (
-                                  <><PackageCheck size={13} /> Confirmer & créer étiquette</>
+                                  <><PackageCheck size={13} /> {t('admin.ordersPage.confirmButton')}</>
                                 )}
                               </button>
                             )}

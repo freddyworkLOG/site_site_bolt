@@ -26,7 +26,8 @@
     "viewProduct": "Voir le produit",
     "backToShop": "Retour a la boutique",
     "viewAll": "Voir tout",
-    "from": "A partir de"
+    "from": "A partir de",
+    "date": "Date"
   },
   "home": {
     "heroTitle": "Be Princess Collection",
@@ -253,6 +254,21 @@
       "required": "Veuillez remplir tous les champs obligatoires",
       "success": "Vente enregistrée avec succès",
       "cancelConfirm": "Voulez-vous vraiment annuler cette vente ?"
+    },
+    "ordersPage": {
+      "newTab": "Nouvelles commandes",
+      "confirmedTab": "Commandes confirmées",
+      "orderId": "N° Commande",
+      "confirmColumn": "Confirmer",
+      "actions": "Actions",
+      "tracking": "Suivi",
+      "searchPlaceholder": "Rechercher par nom, téléphone...",
+      "emptyNew": "Aucune nouvelle commande",
+      "emptyConfirmed": "Aucune commande confirmée",
+      "confirmButton": "Confirmer & créer étiquette",
+      "creating": "Création...",
+      "yalidineSoon": "Yalidine — bientôt disponible",
+      "confirmDialog": "Confirmer cette commande ? Cela va créer une étiquette d'expédition ZR Express et ne peut pas être annulé facilement."
     }
   }
 }
