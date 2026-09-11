@@ -715,9 +715,6 @@ const [loading, setLoading] = useState(true)
         }
 
         /* Sidebar */
-        .checkout-sidebar {
-          order: -1;
-        }
 
         .summary-card {
           background: var(--white);
