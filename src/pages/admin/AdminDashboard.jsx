@@ -581,7 +581,7 @@ export default function AdminDashboard() {
           >
             Be Princess Collection — Admin
           </h1>
-          <div className="admin-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ display: 'flex', gap: '4px', background: 'var(--beige)', borderRadius: '8px', padding: '4px' }}>
               {['fr', 'en', 'ar'].map(lng => (
                 <button
@@ -597,7 +597,6 @@ export default function AdminDashboard() {
                     fontSize: '13px',
                     fontWeight: 600,
                     textTransform: 'uppercase',
-                    minHeight: '32px',
                   }}
                 >
                   {lng}
@@ -606,7 +605,6 @@ export default function AdminDashboard() {
             </div>
             <button
               onClick={handleSignOut}
-              className="admin-signout-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -618,12 +616,10 @@ export default function AdminDashboard() {
                 color: 'var(--text-muted)',
                 cursor: 'pointer',
                 fontSize: '14px',
-                minHeight: '40px',
-                flexShrink: 0,
               }}
             >
               <LogOut size={18} />
-              <span className="signout-label">{t('admin.signOut')}</span>
+              {t('admin.signOut')}
             </button>
           </div>
         </div>
@@ -689,14 +685,13 @@ export default function AdminDashboard() {
         {/* Sales */}
         {activeTab === 'sales' && (
           <div>
-            <div className="page-header-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 600 }}>{t('admin.salesPage.title')}</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '4px' }}>{t('admin.salesPage.subtitle')}</p>
               </div>
               <button onClick={() => { loadProducts(); setShowSaleModal(true) }}
-                className="add-btn"
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', background: 'var(--gold)', color: 'var(--white)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, minHeight: '44px', flexShrink: 0 }}>
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', background: 'var(--gold)', color: 'var(--white)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
                 <Plus size={18} /> {t('admin.salesPage.newSale')}
               </button>
             </div>
@@ -728,7 +723,7 @@ export default function AdminDashboard() {
                         <td>{sale.unit_price?.toLocaleString()} DZD</td>
                         <td><strong>{sale.total_price?.toLocaleString()} DZD</strong></td>
                         <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(sale.created_at).toLocaleDateString('fr-FR')}</td>
-                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}><button onClick={() => cancelManualSale(sale.id, sale.variant_id, sale.quantity)} className="icon-btn danger touch-target"><Trash2 size={18} /></button></td>
+                        <td><button onClick={() => cancelManualSale(sale.id, sale.variant_id, sale.quantity)} className="icon-btn danger"><Trash2 size={16} /></button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -741,13 +736,12 @@ export default function AdminDashboard() {
         {/* Products */}
         {activeTab === 'products' && (
           <div>
-            <div className="page-header-bar" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 600 }}>
                 {t('admin.products')}
               </h2>
               <button
                 onClick={() => openProductModal()}
-                className="add-btn"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -759,8 +753,6 @@ export default function AdminDashboard() {
                   borderRadius: '8px',
                   cursor: 'pointer',
                   fontWeight: 600,
-                  minHeight: '44px',
-                  flexShrink: 0,
                 }}
               >
                 <Plus size={18} />
@@ -803,9 +795,9 @@ export default function AdminDashboard() {
                         <td>
                           {(product.product_variants?.reduce((sum, v) => sum + (v.stock_quantity || 0), 0) || 0)}
                         </td>
-                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          <button onClick={() => openProductModal(product)} className="icon-btn touch-target"><Edit2 size={18} /></button>
-                          <button onClick={() => deleteProduct(product.id)} className="icon-btn danger touch-target"><Trash2 size={18} /></button>
+                        <td style={{ textAlign: 'center' }}>
+                          <button onClick={() => openProductModal(product)} className="icon-btn"><Edit2 size={16} /></button>
+                          <button onClick={() => deleteProduct(product.id)} className="icon-btn danger"><Trash2 size={16} /></button>
                         </td>
                       </tr>
                     ))}
@@ -823,7 +815,7 @@ export default function AdminDashboard() {
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 600 }}>
                 {t('admin.orders')}
               </h2>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexShrink: 0 }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                 <div style={{ position: 'relative' }}>
                   <Search size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
@@ -831,24 +823,23 @@ export default function AdminDashboard() {
                     placeholder={t('admin.ordersPage.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ padding: '10px 12px 10px 36px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px', minHeight: '40px' }}
+                    style={{ padding: '8px 12px 8px 36px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '14px' }}
                   />
                 </div>
               </div>
             </div>
 
             {/* Order sub-tabs */}
-            <div className="order-subtabs" style={{ display: 'flex', gap: '8px', marginBottom: '20px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
               <button
                 onClick={() => setOrderSubtab('new')}
                 style={{
-                  padding: '10px 16px', borderRadius: '999px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                  padding: '8px 16px', borderRadius: '999px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                   border: '1px solid', transition: 'all 0.15s ease',
                   background: orderSubtab === 'new' ? 'var(--gold)' : 'transparent',
                   color: orderSubtab === 'new' ? 'white' : 'var(--text)',
                   borderColor: orderSubtab === 'new' ? 'var(--gold)' : 'var(--border)',
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  minHeight: '40px', whiteSpace: 'nowrap', flexShrink: 0,
                 }}
               >
                 <ShoppingBag size={14} /> {t('admin.ordersPage.newTab')}
@@ -859,13 +850,12 @@ export default function AdminDashboard() {
               <button
                 onClick={() => setOrderSubtab('confirmed')}
                 style={{
-                  padding: '10px 16px', borderRadius: '999px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                  padding: '8px 16px', borderRadius: '999px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                   border: '1px solid', transition: 'all 0.15s ease',
                   background: orderSubtab === 'confirmed' ? 'var(--gold)' : 'transparent',
                   color: orderSubtab === 'confirmed' ? 'white' : 'var(--text)',
                   borderColor: orderSubtab === 'confirmed' ? 'var(--gold)' : 'var(--border)',
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  minHeight: '40px', whiteSpace: 'nowrap', flexShrink: 0,
                 }}
               >
                 <PackageCheck size={14} /> {t('admin.ordersPage.confirmedTab')}
@@ -975,8 +965,8 @@ export default function AdminDashboard() {
                         <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                           {new Date(order.created_at).toLocaleDateString()}
                         </td>
-                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          <button onClick={() => setSelectedOrder(order)} className="icon-btn touch-target"><Eye size={18} /></button>
+                        <td style={{ textAlign: 'center' }}>
+                          <button onClick={() => setSelectedOrder(order)} className="icon-btn"><Eye size={16} /></button>
                         </td>
                       </tr>
                     ))}
@@ -1010,7 +1000,7 @@ export default function AdminDashboard() {
                 <input type="text" value={productForm.name_ar} onChange={e => setProductForm({ ...productForm, name_ar: e.target.value })} placeholder="مثال: عباية كلاسيكية" dir="rtl" />
               </div>
 
-              <div className="modal-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label>Catégorie</label>
                   <select value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })}>
@@ -1174,7 +1164,7 @@ export default function AdminDashboard() {
                             {s.size}
                           </button>
                           {s.enabled && (
-                            <div className="modal-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingLeft: '8px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingLeft: '8px' }}>
                               <div>
                                 <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
                                   Prix (DZD)
@@ -1257,7 +1247,7 @@ export default function AdminDashboard() {
                   </select>
                 </div>
               )}
-              <div className="modal-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
                   <label>{t('admin.salesPage.quantity')} *</label>
                   <input type="text" inputMode="numeric" value={saleForm.quantity} onChange={e => setSaleForm({ ...saleForm, quantity: e.target.value })} placeholder="1" />
@@ -1434,15 +1424,6 @@ export default function AdminDashboard() {
           border-radius: 6px;
           color: var(--text-muted);
           transition: all 0.2s ease;
-        }
-
-        .icon-btn.touch-target {
-          padding: 10px;
-          min-width: 44px;
-          min-height: 44px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
         }
 
         .icon-btn:hover { background: var(--beige); color: var(--text); }
@@ -1739,15 +1720,9 @@ export default function AdminDashboard() {
         .admin-tabs::-webkit-scrollbar-track { background: transparent; }
         .admin-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-        .order-subtabs { -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
-        .order-subtabs::-webkit-scrollbar { height: 4px; }
-        .order-subtabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
         @media (max-width: 768px) {
           .variant-row { grid-template-columns: 1fr 1fr; }
           .order-info-grid { grid-template-columns: 1fr; }
-          .modal-grid-2 { grid-template-columns: 1fr !important; }
-          .admin-header-controls { flex-wrap: wrap; gap: '8px'; }
         }
 
         @media (max-width: 480px) {
@@ -1758,12 +1733,6 @@ export default function AdminDashboard() {
           .modal-body { padding: 16px; }
           .modal-header { padding: 16px; }
           .modal-overlay { padding: 8px; }
-          .admin-header-controls { flex-wrap: wrap; }
-          .signout-label { display: none; }
-          .admin-signout-btn { padding: '10px 12px'; }
-          .page-header-bar h2 { font-size: 20px; }
-          .products-table th, .products-table td,
-          .orders-table th, .orders-table td { padding: 12px 10px; font-size: 13px; }
         }
       `}</style>
     </div>
