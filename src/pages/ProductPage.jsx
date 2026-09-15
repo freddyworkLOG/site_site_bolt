@@ -497,8 +497,8 @@ export default function ProductPage() {
 
               {/* Add to cart */}
               <button
-                onClick={handleAddToCart}
-                disabled={!canAddToCart || addingToCart}
+                onClick={addedToCart ? () => navigate('/cart') : handleAddToCart}
+                disabled={addingToCart || (!canAddToCart && !addedToCart)}
                 className={`add-to-cart-btn ${addedToCart ? 'added' : ''}`}
               >
                 {addedToCart ? (
